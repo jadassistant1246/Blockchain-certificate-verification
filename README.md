@@ -1,9 +1,6 @@
 # Blockchain-certificate-verification
 Blockchain-based system for secure digital certificate issuance and tamper-proof verification.
 
-# Blockchain Certificate Verification System
-
-A blockchain-based digital certificate verification system that uses smart contracts, cryptographic hashing, and QR codes to securely issue, verify, and detect tampered certificates.
 
 ## 📌 Project Overview
 
