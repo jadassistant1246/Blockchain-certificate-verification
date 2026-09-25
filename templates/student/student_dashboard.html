@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Dashboard - CertiChain</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f6fa;
+            color: #333;
+        }
+
+        /* Navbar */
+
+        .navbar {
+            background: linear-gradient(135deg, #8b4513, #d97706);
+
+            color: white;
+
+            padding: 18px 50px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logout {
+            background: white;
+
+            color: #8b4513;
+
+            padding: 10px 20px;
+
+            border-radius: 6px;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+
+        .logout:hover {
+            background: #f1f1f1;
+        }
+
+
+        /* Container */
+
+        .container {
+            width: 90%;
+
+            max-width: 1000px;
+
+            margin: 45px auto;
+        }
+
+
+        .heading {
+            margin-bottom: 30px;
+        }
+
+        .heading h1 {
+            font-size: 32px;
+
+            color: #333;
+
+            margin-bottom: 8px;
+        }
+
+        .heading p {
+            color: #666;
+        }
+
+
+        /* Certificate List */
+
+        .certificate-list {
+            background: white;
+
+            border-radius: 10px;
+
+            border: 1px solid #ddd;
+
+            overflow: hidden;
+        }
+
+
+        .list-header {
+            background: #8b4513;
+
+            color: white;
+
+            padding: 18px 25px;
+
+            font-size: 20px;
+
+            font-weight: bold;
+        }
+
+
+        .certificate-row {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 20px 25px;
+
+            border-bottom: 1px solid #eee;
+        }
+
+        .certificate-row:last-child {
+            border-bottom: none;
+        }
+
+
+        .certificate-info {
+            display: flex;
+
+            align-items: center;
+
+            gap: 20px;
+        }
+
+
+        .certificate-icon {
+            font-size: 35px;
+        }
+
+
+        .certificate-details h3 {
+            color: #8b4513;
+
+            margin-bottom: 6px;
+        }
+
+        .certificate-details p {
+            color: #666;
+
+            font-size: 14px;
+        }
+
+
+        /* View Button */
+
+        .view-btn {
+            background: #8b4513;
+
+            color: white;
+
+            padding: 10px 22px;
+
+            border-radius: 6px;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+
+        .view-btn:hover {
+            background: #6f350f;
+        }
+
+
+        /* No certificates */
+
+        .no-certificates {
+            padding: 40px;
+
+            text-align: center;
+
+            color: #777;
+        }
+
+
+        /* Responsive */
+
+        @media (max-width: 650px) {
+
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .container {
+                width: 95%;
+            }
+
+            .certificate-row {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 15px;
+            }
+
+            .view-btn {
+                margin-left: 55px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- Navbar -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🔐 CertiChain
+        </div>
+
+        <a href="{{ url_for('logout') }}" class="logout">
+            Logout
+        </a>
+
+    </nav>
+
+
+    <!-- Main -->
+
+    <div class="container">
+
+
+        <div class="heading">
+
+            <h1>Student Dashboard</h1>
+
+            <p>
+                View your blockchain certificates.
+            </p>
+
+        </div>
+
+
+        <!-- Certificate List -->
+
+        <div class="certificate-list">
+
+
+            <div class="list-header">
+                My Certificates
+            </div>
+
+
+            {% if certificates %}
+
+                {% for certificate in certificates %}
+
+                    <div class="certificate-row">
+
+
+                        <div class="certificate-info">
+
+                            <div class="certificate-icon">
+                                📜
+                            </div>
+
+
+                            <div class="certificate-details">
+
+                                <h3>
+                                    {{ certificate.certificate_id }}
+                                </h3>
+
+                                <p>
+                                    {{ certificate.certificate_name }}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <a
+                            href="{{ url_for('view_certificate', certificate_id=certificate.certificate_id) }}"
+                            class="view-btn">
+
+                            View
+
+                        </a>
+
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="no-certificates">
+
+                    <p>
+                        No certificates have been issued to you yet.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+
+        </div>
+
+    </div>
+
+
+</body>
+
+</html>
