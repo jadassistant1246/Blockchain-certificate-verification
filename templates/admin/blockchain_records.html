@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Blockchain Records - BlockCert Admin</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: #111827;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 25px 15px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            padding: 0 15px;
+            margin-bottom: 35px;
+        }
+
+        .logo i {
+            margin-right: 8px;
+            color: #60a5fa;
+        }
+
+        .menu-title {
+            color: #6b7280;
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 0 15px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu li {
+            margin-bottom: 6px;
+        }
+
+        .menu li a {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .menu li a i {
+            width: 18px;
+            text-align: center;
+        }
+
+        .menu li a:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu li a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* ================= MAIN CONTENT ================= */
+
+        .main {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        /* ================= TOP BAR ================= */
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .page-title h1 {
+            font-size: 25px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .page-title p {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .admin-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .admin-profile span {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* ================= INFO BOX ================= */
+
+        .blockchain-info {
+            background: white;
+            border-left: 5px solid #2563eb;
+            padding: 18px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .blockchain-info h3 {
+            font-size: 15px;
+            margin-bottom: 5px;
+            color: #111827;
+        }
+
+        .blockchain-info p {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* ================= STAT CARDS ================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .stat-info p {
+            color: #6b7280;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .stat-info h2 {
+            font-size: 23px;
+            color: #111827;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 19px;
+        }
+
+        .blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .green {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .orange {
+            background: #ffedd5;
+            color: #ea580c;
+        }
+
+        .red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* ================= TABLE CONTAINER ================= */
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .table-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .table-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .search-box input {
+            width: 230px;
+            height: 38px;
+            padding: 0 12px 0 35px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .search-box input:focus {
+            border-color: #2563eb;
+        }
+
+        .filter select {
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 12px;
+            background: white;
+        }
+
+        /* ================= TABLE ================= */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        thead {
+            background: #f8fafc;
+        }
+
+        th {
+            text-align: left;
+            padding: 13px 12px;
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        /* ================= CERTIFICATE ================= */
+
+        .certificate-id {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .student-name {
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .course {
+            color: #6b7280;
+        }
+
+        /* ================= HASH ================= */
+
+        .hash {
+            font-family: monospace;
+            font-size: 11px;
+            background: #f3f4f6;
+            padding: 6px 8px;
+            border-radius: 5px;
+            color: #374151;
+            display: inline-block;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ================= STATUS ================= */
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .status.confirmed {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status.pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .status.failed {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* ================= VIEW BUTTON ================= */
+
+        .view-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            transition: 0.3s;
+        }
+
+        .view-btn:hover {
+            background: #eff6ff;
+        }
+
+        /* ================= PAGINATION ================= */
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .pagination-info {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .pages {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pages a {
+            text-decoration: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .pages a:hover,
+        .pages a.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        /* ================= EMPTY DATA ================= */
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            color: #9ca3af;
+        }
+
+        .empty-state h3 {
+            font-size: 15px;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+
+        .empty-state p {
+            font-size: 12px;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 1100px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .sidebar {
+                width: 70px;
+                padding: 20px 8px;
+            }
+
+            .logo {
+                font-size: 0;
+                text-align: center;
+                padding: 0;
+            }
+
+            .logo i {
+                font-size: 22px;
+                margin: 0;
+            }
+
+            .menu-title,
+            .menu li a span {
+                display: none;
+            }
+
+            .menu li a {
+                justify-content: center;
+            }
+
+            .main {
+                margin-left: 70px;
+                padding: 20px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-tools {
+                width: 100%;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <i class="fa-solid fa-cubes"></i>
+            BlockCert
+        </div>
+
+        <div class="menu-title">Main Menu</div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="{{ url_for('admin_dashboard') }}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('admin_students') }}">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('admin_certificates') }}">
+                    <i class="fa-solid fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('admin_verification') }}">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Verification</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('blockchain_records') }}" class="active">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Blockchain Records</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('admin_settings') }}">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('logout') }}">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+
+    <main class="main">
+
+        <!-- TOP BAR -->
+
+        <div class="topbar">
+
+            <div class="page-title">
+
+                <h1>Blockchain Records</h1>
+
+                <p>
+                    View and monitor all certificate records stored on the blockchain.
+                </p>
+
+            </div>
+
+            <div class="admin-profile">
+
+                <div class="admin-icon">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <span>Administrator</span>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= INFO BOX ================= -->
+
+        <div class="blockchain-info">
+
+            <h3>
+                <i class="fa-solid fa-link"></i>
+                Blockchain Certificate Ledger
+            </h3>
+
+            <p>
+                This section contains the blockchain records of issued certificates.
+                Each certificate is linked with a unique certificate hash and
+                blockchain transaction record for verification and transparency.
+            </p>
+
+        </div>
+
+
+        <!-- ================= STATISTICS ================= -->
+
+        <div class="stats">
+
+            <div class="stat-card">
+
+                <div class="stat-info">
+                    <p>Total Records</p>
+
+                    <h2>
+                        {{ total_records|default(0) }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon blue">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-info">
+                    <p>Confirmed</p>
+
+                    <h2>
+                        {{ confirmed_records|default(0) }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-info">
+                    <p>Pending</p>
+
+                    <h2>
+                        {{ pending_records|default(0) }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon orange">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-info">
+                    <p>Failed</p>
+
+                    <h2>
+                        {{ failed_records|default(0) }}
+                    </h2>
+                </div>
+
+                <div class="stat-icon red">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= BLOCKCHAIN TABLE ================= -->
+
+        <div class="table-container">
+
+            <div class="table-header">
+
+                <h2>All Blockchain Records</h2>
+
+                <div class="table-tools">
+
+                    <!-- Search -->
+
+                    <div class="search-box">
+
+                        <i class="fa-solid fa-search"></i>
+
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Search records..."
+                            onkeyup="searchRecords()"
+                        >
+
+                    </div>
+
+
+                    <!-- Filter -->
+
+                    <div class="filter">
+
+                        <select id="statusFilter"
+                                onchange="filterRecords()">
+
+                            <option value="all">
+                                All Status
+                            </option>
+
+                            <option value="confirmed">
+                                Confirmed
+                            </option>
+
+                            <option value="pending">
+                                Pending
+                            </option>
+
+                            <option value="failed">
+                                Failed
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- TABLE -->
+
+            <div class="table-wrapper">
+
+                <table id="blockchainTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Certificate ID</th>
+
+                            <th>Student</th>
+
+                            <th>Certificate Hash</th>
+
+                            <th>Transaction Hash</th>
+
+                            <th>Block Number</th>
+
+                            <th>Network</th>
+
+                            <th>Date & Time</th>
+
+                            <th>Status</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% if blockchain_records %}
+
+                            {% for record in blockchain_records %}
+
+                            <tr>
+
+                                <!-- Number -->
+
+                                <td>
+                                    {{ loop.index }}
+                                </td>
+
+
+                                <!-- Certificate ID -->
+
+                                <td>
+
+                                    <span class="certificate-id">
+
+                                        {{ record.certificate_id }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Student -->
+
+                                <td>
+
+                                    <span class="student-name">
+
+                                        {{ record.student_name }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Certificate Hash -->
+
+                                <td>
+
+                                    <span
+                                        class="hash"
+                                        title="{{ record.certificate_hash }}"
+                                    >
+
+                                        {{ record.certificate_hash }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Transaction Hash -->
+
+                                <td>
+
+                                    <span
+                                        class="hash"
+                                        title="{{ record.transaction_hash }}"
+                                    >
+
+                                        {{ record.transaction_hash }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Block Number -->
+
+                                <td>
+
+                                    {{ record.block_number|default('—') }}
+
+                                </td>
+
+
+                                <!-- Network -->
+
+                                <td>
+
+                                    {{ record.network|default('Ethereum') }}
+
+                                </td>
+
+
+                                <!-- Date -->
+
+                                <td>
+
+                                    {{ record.created_at }}
+
+                                </td>
+
+
+                                <!-- Status -->
+
+                                <td>
+
+                                    {% if record.status == 'Confirmed' %}
+
+                                        <span class="status confirmed">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Confirmed
+                                        </span>
+
+                                    {% elif record.status == 'Pending' %}
+
+                                        <span class="status pending">
+                                            <i class="fa-solid fa-clock"></i>
+                                            Pending
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status failed">
+                                            <i class="fa-solid fa-circle-xmark"></i>
+                                            Failed
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- Action -->
+
+                                <td>
+
+                                    <a
+                                        href="{{ url_for('blockchain_record_details', record_id=record.record_id) }}"
+                                        class="view-btn"
+                                    >
+
+                                        <i class="fa-solid fa-eye"></i>
+                                        View
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <tr>
+
+                                <td colspan="10">
+
+                                    <div class="empty-state">
+
+                                        <i class="fa-solid fa-link-slash"></i>
+
+                                        <h3>
+                                            No Blockchain Records Found
+                                        </h3>
+
+                                        <p>
+                                            Blockchain certificate records will appear here.
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- ================= PAGINATION ================= -->
+
+            <div class="pagination">
+
+                <div class="pagination-info">
+
+                    Showing blockchain certificate records
+
+                </div>
+
+
+                <div class="pages">
+
+                    <a href="#">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+
+                    <a href="#" class="active">
+                        1
+                    </a>
+
+                    <a href="#">
+                        2
+                    </a>
+
+                    <a href="#">
+                        3
+                    </a>
+
+                    <a href="#">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- ================= JAVASCRIPT ================= -->
+
+    <script>
+
+        function searchRecords() {
+
+            let input =
+                document.getElementById("searchInput")
+                .value
+                .toLowerCase();
+
+            let rows =
+                document.querySelectorAll("#blockchainTable tbody tr");
+
+            rows.forEach(function(row) {
+
+                let text = row.innerText.toLowerCase();
+
+                if (text.includes(input)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+
+            });
+
+        }
+
+
+        function filterRecords() {
+
+            let filter =
+                document.getElementById("statusFilter")
+                .value
+                .toLowerCase();
+
+            let rows =
+                document.querySelectorAll("#blockchainTable tbody tr");
+
+            rows.forEach(function(row) {
+
+                let statusCell = row.cells[8];
+
+                if (!statusCell) {
+                    return;
+                }
+
+                let status =
+                    statusCell.innerText
+                    .trim()
+                    .toLowerCase();
+
+                if (filter === "all" || status.includes(filter)) {
+
+                    row.style.display = "";
+
+                } else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+        }
+
+    </script>
+
+</body>
+</html>

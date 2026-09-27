@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Logout - BlockCert Admin</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+        }
+
+        /* ================= LOGOUT CARD ================= */
+
+        .logout-card {
+            width: 430px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ================= LOGO ================= */
+
+        .logo {
+            font-size: 23px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 25px;
+        }
+
+        .logo i {
+            color: #2563eb;
+            margin-right: 7px;
+        }
+
+        /* ================= ICON ================= */
+
+        .logout-icon {
+            width: 75px;
+            height: 75px;
+            margin: 0 auto 20px;
+
+            background: #fee2e2;
+            color: #dc2626;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 30px;
+        }
+
+        /* ================= TEXT ================= */
+
+        .logout-card h1 {
+            font-size: 22px;
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+        .logout-card p {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        /* ================= USER INFO ================= */
+
+        .user-info {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+
+            padding: 12px;
+            border-radius: 8px;
+
+            margin-bottom: 25px;
+        }
+
+        .user-info i {
+            color: #2563eb;
+            margin-right: 5px;
+        }
+
+        .user-info span {
+            font-size: 12px;
+            color: #374151;
+        }
+
+        /* ================= BUTTONS ================= */
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            height: 42px;
+
+            border-radius: 7px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 500;
+
+            cursor: pointer;
+            border: none;
+
+            transition: 0.3s;
+        }
+
+        /* Cancel */
+
+        .btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        /* Logout */
+
+        .btn-logout {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #b91c1c;
+        }
+
+        .btn i {
+            margin-right: 7px;
+        }
+
+        /* ================= FOOTER ================= */
+
+        .footer {
+            margin-top: 25px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 500px) {
+
+            .logout-card {
+                width: calc(100% - 30px);
+                padding: 30px 20px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- ================= LOGOUT CARD ================= -->
+
+    <div class="logout-card">
+
+        <!-- Logo -->
+
+        <div class="logo">
+
+            <i class="fa-solid fa-cubes"></i>
+
+            BlockCert
+
+        </div>
+
+
+        <!-- Logout Icon -->
+
+        <div class="logout-icon">
+
+            <i class="fa-solid fa-right-from-bracket"></i>
+
+        </div>
+
+
+        <!-- Heading -->
+
+        <h1>
+            Logout from Admin Portal?
+        </h1>
+
+
+        <!-- Description -->
+
+        <p>
+            Are you sure you want to logout from the
+            BlockCert Admin Portal?
+        </p>
+
+
+        <!-- User Information -->
+
+        <div class="user-info">
+
+            <i class="fa-solid fa-user"></i>
+
+            <span>
+                {{ session.get('admin_name', 'Administrator') }}
+            </span>
+
+        </div>
+
+
+        <!-- Buttons -->
+
+        <div class="buttons">
+
+            <!-- Cancel -->
+
+            <a
+                href="{{ url_for('admin_dashboard') }}"
+                class="btn btn-cancel"
+            >
+
+                <i class="fa-solid fa-arrow-left"></i>
+
+                Cancel
+
+            </a>
+
+
+            <!-- Logout -->
+
+            <a
+                href="{{ url_for('logout') }}"
+                class="btn btn-logout"
+            >
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                Logout
+
+            </a>
+
+        </div>
+
+
+        <!-- Footer -->
+
+        <div class="footer">
+
+            BlockCert • Blockchain Certificate Verification System
+
+        </div>
+
+    </div>
+
+</body>
+</html>
