@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Revoked Certificates | BlockCert</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #111827;
+            padding: 25px 15px;
+        }
+
+        .logo {
+            text-align: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 35px;
+        }
+
+        .logo span {
+            color: #3b82f6;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu li {
+            margin-bottom: 8px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 13px 15px;
+            color: #d1d5db;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .menu a:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+
+        /* =========================
+           MAIN CONTENT
+        ========================= */
+
+        .main {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+
+        /* =========================
+           TOP BAR
+        ========================= */
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .topbar h1 {
+            font-size: 28px;
+            color: #111827;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .admin-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+
+        /* =========================
+           PAGE HEADER
+        ========================= */
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h2 {
+            font-size: 23px;
+            color: #111827;
+            margin-bottom: 7px;
+        }
+
+        .page-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           WARNING BOX
+        ========================= */
+
+        .warning-box {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-left: 5px solid #f97316;
+            padding: 17px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .warning-box h3 {
+            color: #c2410c;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .warning-box p {
+            color: #7c2d12;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+
+        /* =========================
+           STATISTICS
+        ========================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 27px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+
+        /* =========================
+           TABLE CONTAINER
+        ========================= */
+
+        .certificate-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+
+        /* =========================
+           TABLE HEADER
+        ========================= */
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-header h3 {
+            font-size: 19px;
+            color: #111827;
+        }
+
+
+        /* =========================
+           SEARCH
+        ========================= */
+
+        .search-box {
+            width: 280px;
+            padding: 10px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-box:focus {
+            border-color: #2563eb;
+        }
+
+
+        /* =========================
+           FILTER
+        ========================= */
+
+        .filter-box {
+            padding: 10px 12px;
+            margin-left: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            background: white;
+            outline: none;
+        }
+
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .certificate-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .certificate-table th {
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 13px;
+            padding: 14px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .certificate-table td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .certificate-table tr:hover {
+            background: #fafafa;
+        }
+
+
+        /* =========================
+           CERTIFICATE ID
+        ========================= */
+
+        .certificate-id {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .certificate-hash {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+
+        /* =========================
+           STUDENT
+        ========================= */
+
+        .student-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .student-id {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+
+        /* =========================
+           REASON
+        ========================= */
+
+        .reason {
+            max-width: 220px;
+            color: #4b5563;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+
+
+        /* =========================
+           REVOKED STATUS
+        ========================= */
+
+        .status {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .revoked {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+
+        /* =========================
+           BLOCKCHAIN
+        ========================= */
+
+        .blockchain-status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #dcfce7;
+            color: #15803d;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+
+        /* =========================
+           ACTION BUTTON
+        ========================= */
+
+        .view-btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 7px 11px;
+            border-radius: 6px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .view-btn:hover {
+            background: #bfdbfe;
+        }
+
+
+        /* =========================
+           PAGINATION
+        ========================= */
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .pagination-info {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .page-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-buttons button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .page-buttons button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+
+        /* =========================
+           EMPTY STATE
+        ========================= */
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6b7280;
+        }
+
+        .empty h3 {
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1200px) {
+
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .certificate-container {
+                overflow-x: auto;
+            }
+
+            .certificate-table {
+                min-width: 1200px;
+            }
+        }
+
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .topbar,
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filter-box {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================
+         SIDEBAR
+    ====================================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            Block<span>Cert</span>
+        </div>
+
+
+        <ul class="menu">
+
+            <li>
+                <a href="{{ url_for('admin_dashboard') }}">
+                    Dashboard
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_students') }}">
+                    Students
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_certificates') }}">
+                    Certificates
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_verification') }}">
+                    Verification
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('revoked_certificates') }}"
+                   class="active">
+                    Revoked Certificates
+                </a>
+            </li>
+
+
+            <li>
+    <a href="{{ url_for('blockchain_records') }}">
+        Blockchain Records
+    </a>
+</li>
+
+<li>
+    <a href="{{ url_for('admin_settings') }}">
+        Settings
+    </a>
+</li>
+
+
+            <li>
+                <a href="{{ url_for('logout') }}">
+                    Logout
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+
+
+    <!-- =====================================
+         MAIN CONTENT
+    ====================================== -->
+
+    <main class="main">
+
+
+        <!-- TOP BAR -->
+
+        <div class="topbar">
+
+            <h1>Revoked Certificates</h1>
+
+
+            <div class="admin-profile">
+
+                <div class="admin-icon">
+                    A
+                </div>
+
+                <span>Administrator</span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PAGE HEADER -->
+
+        <div class="page-header">
+
+            <h2>Revoked Certificates</h2>
+
+            <p>
+                View certificates that have been revoked and their complete
+                revocation records.
+            </p>
+
+        </div>
+
+
+
+        <!-- =====================================
+             WARNING
+        ====================================== -->
+
+        <div class="warning-box">
+
+            <h3>⚠ Revoked Certificate Records</h3>
+
+            <p>
+                These certificates are no longer considered valid.
+                Revocation information is maintained for audit,
+                verification and blockchain record tracking.
+            </p>
+
+        </div>
+
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <div class="stats">
+
+
+            <div class="stat-card">
+
+                <h3>Total Revoked Certificates</h3>
+
+                <div class="stat-number">
+
+                    {{ certificates|length }}
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Blockchain Recorded</h3>
+
+                <div class="stat-number">
+
+                    {{ certificates
+                       |selectattr('blockchain_status',
+                                   'equalto',
+                                   'Confirmed')
+                       |list
+                       |length }}
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Recent Revocations</h3>
+
+                <div class="stat-number">
+
+                    {{ recent_revocations|default(0) }}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =====================================
+             REVOKED CERTIFICATE TABLE
+        ====================================== -->
+
+        <div class="certificate-container">
+
+
+            <div class="table-header">
+
+
+                <h3>
+                    Revocation History
+                </h3>
+
+
+                <div>
+
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="search-box"
+                        placeholder="Search certificate..."
+                    >
+
+
+                    <select
+                        id="filterBox"
+                        class="filter-box"
+                    >
+
+                        <option value="all">
+                            All Certificates
+                        </option>
+
+                        <option value="blockchain">
+                            Blockchain Recorded
+                        </option>
+
+                    </select>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =====================================
+                 TABLE
+            ====================================== -->
+
+            <table
+                class="certificate-table"
+                id="certificateTable"
+            >
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Certificate</th>
+
+                        <th>Student</th>
+
+                        <th>Course</th>
+
+                        <th>Issue Date</th>
+
+                        <th>Revoked Date</th>
+
+                        <th>Revoked By</th>
+
+                        <th>Reason</th>
+
+                        <th>Blockchain</th>
+
+                        <th>Status</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody>
+
+
+                    {% for certificate in certificates %}
+
+
+                    <tr>
+
+
+                        <!-- NUMBER -->
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+
+                        <!-- CERTIFICATE -->
+
+                        <td>
+
+                            <div class="certificate-id">
+
+                                {{ certificate.certificate_id }}
+
+                            </div>
+
+
+                            <div class="certificate-hash">
+
+                                Hash:
+                                {{ certificate.certificate_hash[:18] }}...
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- STUDENT -->
+
+                        <td>
+
+                            <div class="student-name">
+
+                                {{ certificate.student_name }}
+
+                            </div>
+
+
+                            <div class="student-id">
+
+                                ID:
+                                {{ certificate.student_id }}
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- COURSE -->
+
+                        <td>
+
+                            {{ certificate.course }}
+
+                        </td>
+
+
+                        <!-- ISSUE DATE -->
+
+                        <td>
+
+                            {{ certificate.issue_date }}
+
+                        </td>
+
+
+                        <!-- REVOKED DATE -->
+
+                        <td>
+
+                            {{ certificate.revoked_at }}
+
+                        </td>
+
+
+                        <!-- REVOKED BY -->
+
+                        <td>
+
+                            {{ certificate.revoked_by }}
+
+                        </td>
+
+
+                        <!-- REASON -->
+
+                        <td>
+
+                            <div class="reason">
+
+                                {{ certificate.revocation_reason }}
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- BLOCKCHAIN -->
+
+                        <td>
+
+
+                            {% if certificate.blockchain_status == "Confirmed" %}
+
+                                <span class="blockchain-status">
+
+                                    ✓ Confirmed
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="status">
+
+                                    Pending
+
+                                </span>
+
+                            {% endif %}
+
+
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td>
+
+                            <span class="status revoked">
+
+                                Revoked
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- DETAILS -->
+
+                        <td>
+
+                            <a
+                                href="{{ url_for(
+                                    'certificate_details',
+                                    certificate_id=certificate.certificate_id
+                                ) }}"
+                                class="view-btn"
+                            >
+
+                                View Details
+
+                            </a>
+
+                        </td>
+
+
+                    </tr>
+
+
+                    {% else %}
+
+
+                    <!-- EMPTY -->
+
+                    <tr>
+
+                        <td colspan="11">
+
+                            <div class="empty">
+
+                                <h3>
+                                    No Revoked Certificates
+                                </h3>
+
+                                <p>
+                                    There are currently no revoked
+                                    certificate records.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+
+                    {% endfor %}
+
+
+                </tbody>
+
+
+            </table>
+
+
+
+            <!-- =====================================
+                 PAGINATION
+            ====================================== -->
+
+            <div class="pagination">
+
+
+                <div class="pagination-info">
+
+                    Showing revoked certificate records
+
+                </div>
+
+
+                <div class="page-buttons">
+
+                    <button>
+                        Previous
+                    </button>
+
+                    <button class="active">
+                        1
+                    </button>
+
+                    <button>
+                        2
+                    </button>
+
+                    <button>
+                        3
+                    </button>
+
+                    <button>
+                        Next
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+
+    <!-- =====================================
+         SEARCH + FILTER
+    ====================================== -->
+
+    <script>
+
+        const searchInput =
+            document.getElementById("searchInput");
+
+        const filterBox =
+            document.getElementById("filterBox");
+
+        const rows =
+            document.querySelectorAll(
+                "#certificateTable tbody tr"
+            );
+
+
+        function filterCertificates() {
+
+            const searchValue =
+                searchInput.value.toLowerCase();
+
+            const filterValue =
+                filterBox.value;
+
+
+            rows.forEach(function(row) {
+
+                const rowText =
+                    row.innerText.toLowerCase();
+
+
+                let searchMatch =
+                    rowText.includes(searchValue);
+
+
+                let filterMatch = true;
+
+
+                if (filterValue === "blockchain") {
+
+                    filterMatch =
+                        rowText.includes("confirmed");
+
+                }
+
+
+                if (
+                    searchMatch &&
+                    filterMatch
+                ) {
+
+                    row.style.display = "";
+
+                } else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+        }
+
+
+        searchInput.addEventListener(
+            "keyup",
+            filterCertificates
+        );
+
+
+        filterBox.addEventListener(
+            "change",
+            filterCertificates
+        );
+
+    </script>
+
+
+</body>
+
+</html>
+

@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Certificates | Blockchain Certificate Verification</title>
+
+    <style>
+
+        /* =========================
+           RESET
+        ========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+
+        body {
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #111827;
+            padding: 25px 15px;
+        }
+
+
+        .logo {
+            text-align: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 35px;
+        }
+
+
+        .logo span {
+            color: #3b82f6;
+        }
+
+
+        .menu {
+            list-style: none;
+        }
+
+
+        .menu li {
+            margin-bottom: 8px;
+        }
+
+
+        .menu a {
+            display: block;
+            padding: 13px 15px;
+            text-decoration: none;
+            color: #d1d5db;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+
+        .menu a:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+
+        .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+
+        /* =========================
+           MAIN CONTENT
+        ========================= */
+
+        .main {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+
+        /* =========================
+           TOP BAR
+        ========================= */
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+
+        .topbar h1 {
+            font-size: 28px;
+            color: #111827;
+        }
+
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+
+        .admin-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+
+        /* =========================
+           PAGE HEADER
+        ========================= */
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+
+        .page-header h2 {
+            font-size: 23px;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+
+        .page-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           ISSUE CERTIFICATE BUTTON
+        ========================= */
+
+        .issue-btn {
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+
+        .issue-btn:hover {
+            background: #1d4ed8;
+        }
+
+
+        /* =========================
+           STATISTICS
+        ========================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+
+        .stat-number {
+            font-size: 27px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+
+        /* =========================
+           CERTIFICATE TABLE
+        ========================= */
+
+        .certificate-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+
+        .table-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+
+        .table-top h3 {
+            font-size: 19px;
+            color: #111827;
+        }
+
+
+        /* =========================
+           SEARCH
+        ========================= */
+
+        .search-box {
+            width: 270px;
+            padding: 10px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 14px;
+        }
+
+
+        .search-box:focus {
+            border-color: #2563eb;
+        }
+
+
+        /* =========================
+           FILTER
+        ========================= */
+
+        .filter-box {
+            padding: 10px 12px;
+            margin-left: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            background: white;
+            outline: none;
+        }
+
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .certificate-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+
+        .certificate-table th {
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 13px;
+            padding: 14px;
+            text-align: left;
+        }
+
+
+        .certificate-table td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+
+        .certificate-table tr:hover {
+            background: #f9fafb;
+        }
+
+
+        /* =========================
+           CERTIFICATE ID
+        ========================= */
+
+        .certificate-id {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+
+        .blockchain-hash {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+
+        /* =========================
+           STUDENT NAME
+        ========================= */
+
+        .student-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+
+        /* =========================
+           STATUS
+        ========================= */
+
+        .status {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+
+        .verified {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+
+        .pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+
+        .revoked {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+
+        /* =========================
+           ACTION BUTTONS
+        ========================= */
+
+        .actions {
+            display: flex;
+            gap: 6px;
+        }
+
+
+        .action-btn {
+            text-decoration: none;
+            padding: 7px 11px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+
+        .view-btn {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+
+        .view-btn:hover {
+            background: #bfdbfe;
+        }
+
+
+        /* =========================
+           PAGINATION
+        ========================= */
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+
+        .pagination-info {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+
+        .page-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+
+        .page-buttons button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+
+        .page-buttons button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+
+        /* =========================
+           EMPTY STATE
+        ========================= */
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .certificate-container {
+                overflow-x: auto;
+            }
+
+            .certificate-table {
+                min-width: 950px;
+            }
+        }
+
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .topbar,
+            .page-header,
+            .table-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filter-box {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================
+         SIDEBAR
+    ====================================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            Block<span>Cert</span>
+        </div>
+
+
+        <ul class="menu">
+
+            <li>
+                <a href="{{ url_for('admin_dashboard') }}">
+                    Dashboard
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_students') }}">
+                    Students
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_certificates') }}"
+                   class="active">
+                    Certificates
+                </a>
+            </li>
+
+
+            <li>
+                <a href="#">
+                    Verification
+                </a>
+            </li>
+
+
+            <li>
+                <a href="#">
+                    Blockchain Records
+                </a>
+            </li>
+
+
+            <li>
+                <a href="#">
+                    Settings
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('logout') }}">
+                    Logout
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+
+
+    <!-- =====================================
+         MAIN CONTENT
+    ====================================== -->
+
+    <main class="main">
+
+
+        <!-- TOP BAR -->
+
+        <div class="topbar">
+
+            <h1>Certificate Management</h1>
+
+
+            <div class="admin-profile">
+
+                <div class="admin-icon">
+                    A
+                </div>
+
+                <span>Administrator</span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PAGE HEADER -->
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>Certificates</h2>
+
+                <p>
+                    Manage, issue and verify blockchain-based certificates.
+                </p>
+
+            </div>
+
+
+            <!-- ISSUE CERTIFICATE -->
+
+            <a href="{{ url_for('issue_certificate') }}"
+               class="issue-btn">
+
+                + Issue Certificate
+
+            </a>
+
+        </div>
+
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <div class="stats">
+
+
+            <div class="stat-card">
+
+                <h3>Total Certificates</h3>
+
+                <div class="stat-number">
+                    {{ certificates|length }}
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Verified</h3>
+
+                <div class="stat-number">
+
+                    {{ certificates
+                       |selectattr('status', 'equalto', 'Verified')
+                       |list
+                       |length }}
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Pending</h3>
+
+                <div class="stat-number">
+
+                    {{ certificates
+                       |selectattr('status', 'equalto', 'Pending')
+                       |list
+                       |length }}
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Revoked</h3>
+
+                <div class="stat-number">
+
+                    {{ certificates
+                       |selectattr('status', 'equalto', 'Revoked')
+                       |list
+                       |length }}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =====================================
+             ALL CERTIFICATES
+        ====================================== -->
+
+        <div class="certificate-container">
+
+
+            <div class="table-top">
+
+
+                <h3>All Certificates</h3>
+
+
+                <div>
+
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="search-box"
+                        placeholder="Search certificate..."
+                    >
+
+
+                    <select
+                        id="statusFilter"
+                        class="filter-box"
+                    >
+
+                        <option value="all">
+                            All Status
+                        </option>
+
+                        <option value="Verified">
+                            Verified
+                        </option>
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="Revoked">
+                            Revoked
+                        </option>
+
+                    </select>
+
+
+                </div>
+
+            </div>
+
+
+
+            <!-- CERTIFICATE TABLE -->
+
+            <table
+                class="certificate-table"
+                id="certificateTable"
+            >
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Certificate</th>
+
+                        <th>Student</th>
+
+                        <th>Course</th>
+
+                        <th>Issue Date</th>
+
+                        <th>Blockchain</th>
+
+                        <th>Status</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody>
+
+
+                    {% for certificate in certificates %}
+
+
+                    <tr>
+
+
+                        <!-- NUMBER -->
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+
+                        <!-- CERTIFICATE -->
+
+                        <td>
+
+                            <div class="certificate-id">
+
+                                {{ certificate.certificate_id }}
+
+                            </div>
+
+
+                            <div class="blockchain-hash">
+
+                                Hash:
+                                {{ certificate.certificate_hash[:18] }}...
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- STUDENT -->
+
+                        <td>
+
+                            <div class="student-name">
+
+                                {{ certificate.student_name }}
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- COURSE -->
+
+                        <td>
+
+                            {{ certificate.course }}
+
+                        </td>
+
+
+                        <!-- ISSUE DATE -->
+
+                        <td>
+
+                            {{ certificate.issue_date }}
+
+                        </td>
+
+
+                        <!-- BLOCKCHAIN -->
+
+                        <td>
+
+                            {% if certificate.blockchain_status == "Confirmed" %}
+
+                                <span class="status verified">
+                                    Confirmed
+                                </span>
+
+                            {% else %}
+
+                                <span class="status pending">
+                                    Pending
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td>
+
+
+                            {% if certificate.status == "Verified" %}
+
+                                <span class="status verified">
+                                    Verified
+                                </span>
+
+
+                            {% elif certificate.status == "Pending" %}
+
+                                <span class="status pending">
+                                    Pending
+                                </span>
+
+
+                            {% else %}
+
+                                <span class="status revoked">
+                                    Revoked
+                                </span>
+
+                            {% endif %}
+
+
+                        </td>
+
+
+                        <!-- ACTION -->
+
+                        <td>
+
+                            <div class="actions">
+
+
+                                <!-- CERTIFICATE DETAILS -->
+
+                                <a
+                                    href="{{ url_for(
+                                        'certificate_details',
+                                        certificate_id=certificate.certificate_id
+                                    ) }}"
+                                    class="action-btn view-btn"
+                                >
+
+                                    View Details
+
+                                </a>
+
+
+                            </div>
+
+                        </td>
+
+
+                    </tr>
+
+
+                    {% else %}
+
+
+                    <!-- NO CERTIFICATES -->
+
+                    <tr>
+
+                        <td colspan="8">
+
+                            <div class="empty">
+
+                                <h3>
+                                    No Certificates Found
+                                </h3>
+
+                                <p>
+                                    No certificates have been issued yet.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+
+                    {% endfor %}
+
+
+                </tbody>
+
+
+            </table>
+
+
+
+            <!-- =====================================
+                 PAGINATION
+            ====================================== -->
+
+            <div class="pagination">
+
+
+                <div class="pagination-info">
+
+                    Showing certificates
+
+                </div>
+
+
+                <div class="page-buttons">
+
+                    <button>
+                        Previous
+                    </button>
+
+                    <button class="active">
+                        1
+                    </button>
+
+                    <button>
+                        2
+                    </button>
+
+                    <button>
+                        3
+                    </button>
+
+                    <button>
+                        Next
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+
+    <!-- =====================================
+         SEARCH + FILTER
+    ====================================== -->
+
+    <script>
+
+
+        const searchInput =
+            document.getElementById("searchInput");
+
+
+        const statusFilter =
+            document.getElementById("statusFilter");
+
+
+        const rows =
+            document.querySelectorAll(
+                "#certificateTable tbody tr"
+            );
+
+
+        function filterCertificates() {
+
+
+            const searchValue =
+                searchInput.value.toLowerCase();
+
+
+            const statusValue =
+                statusFilter.value;
+
+
+            rows.forEach(function(row) {
+
+
+                const rowText =
+                    row.innerText.toLowerCase();
+
+
+                const statusElement =
+                    row.querySelector(".status");
+
+
+                let statusMatch = true;
+
+
+                if (
+                    statusValue !== "all" &&
+                    statusElement
+                ) {
+
+                    statusMatch =
+                        rowText.includes(
+                            statusValue.toLowerCase()
+                        );
+
+                }
+
+
+                const searchMatch =
+                    rowText.includes(searchValue);
+
+
+                if (
+                    searchMatch &&
+                    statusMatch
+                ) {
+
+                    row.style.display = "";
+
+                }
+
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+
+            });
+
+        }
+
+
+        searchInput.addEventListener(
+            "keyup",
+            filterCertificates
+        );
+
+
+        statusFilter.addEventListener(
+            "change",
+            filterCertificates
+        );
+
+
+    </script>
+
+
+</body>
+
+</html>

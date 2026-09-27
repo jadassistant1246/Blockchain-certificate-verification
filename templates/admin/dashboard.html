@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Admin Dashboard | CertiChain</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet">
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+<!-- ================= SIDEBAR ================= -->
+
+<aside class="sidebar">
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            <i class="fa-solid fa-link"></i>
+        </div>
+
+        <div class="brand-text">
+            <h2>CertiChain</h2>
+            <span>Certificate System</span>
+        </div>
+
+    </div>
+
+
+    <!-- Admin Profile -->
+
+    <div class="admin-profile">
+
+        <div class="profile-avatar">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+
+        <div class="profile-info">
+
+            <strong>
+                {{ session.get('admin_name', 'Administrator') }}
+            </strong>
+
+            <span>Institution Admin</span>
+
+        </div>
+
+        <i class="fa-solid fa-circle online-dot"></i>
+
+    </div>
+
+
+    <!-- Navigation -->
+
+    <nav class="sidebar-nav">
+
+        <p class="nav-title">MAIN MENU</p>
+
+
+        <a href="{{ url_for('admin_dashboard') }}"
+           class="nav-item active">
+
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Dashboard</span>
+
+        </a>
+
+
+        <a href="{{ url_for('admin_students') }}"
+           class="nav-item">
+
+            <i class="fa-solid fa-users"></i>
+            <span>Students</span>
+
+        </a>
+
+
+        <div class="nav-group">
+
+            <a href="{{ url_for('admin_certificates') }}"
+               class="nav-item">
+
+                <i class="fa-solid fa-certificate"></i>
+                <span>Certificates</span>
+
+                <i class="fa-solid fa-chevron-down arrow"></i>
+
+            </a>
+
+
+            <div class="submenu">
+
+                <a href="{{ url_for('admin_certificates') }}">
+
+                    <i class="fa-solid fa-list"></i>
+
+                    All Certificates
+
+                </a>
+
+
+                <a href="{{ url_for('issue_certificate') }}">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Issue Certificate
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <a href="{{ url_for('admin_verification') }}"
+           class="nav-item">
+
+            <i class="fa-solid fa-shield-check"></i>
+
+            <span>Verification</span>
+
+        </a>
+
+
+        <a href="{{ url_for('revoked_certificates') }}"
+           class="nav-item">
+
+            <i class="fa-solid fa-ban"></i>
+
+            <span>Revoked Certificates</span>
+
+        </a>
+
+
+        <p class="nav-title second-title">
+            BLOCKCHAIN
+        </p>
+
+
+        <a href="{{ url_for('blockchain_records') }}"
+           class="nav-item">
+
+            <i class="fa-solid fa-cubes"></i>
+
+            <span>Blockchain Records</span>
+
+        </a>
+
+
+        <p class="nav-title second-title">
+            ACCOUNT
+        </p>
+
+
+        <a href="{{ url_for('admin_settings') }}"
+           class="nav-item">
+
+            <i class="fa-solid fa-user"></i>
+
+            <span>Profile</span>
+
+        </a>
+
+
+        <a href="{{ url_for('admin_settings') }}"
+           class="nav-item">
+
+            <i class="fa-solid fa-gear"></i>
+
+            <span>Settings</span>
+
+        </a>
+
+    </nav>
+
+
+    <!-- Logout -->
+
+    <div class="sidebar-bottom">
+
+        <a href="{{ url_for('logout') }}"
+           class="logout-btn">
+
+            <i class="fa-solid fa-right-from-bracket"></i>
+
+            <span>Logout</span>
+
+        </a>
+
+    </div>
+
+</aside>
+
+
+<!-- ================= MAIN CONTENT ================= -->
+
+<main class="main-content">
+
+
+    <!-- HEADER -->
+
+    <header class="top-header">
+
+        <div class="header-left">
+
+            <button class="menu-toggle">
+
+                <i class="fa-solid fa-bars"></i>
+
+            </button>
+
+
+            <div>
+
+                <h1>Dashboard</h1>
+
+                <p>
+                    Welcome back,
+                    {{ session.get('admin_name', 'Administrator') }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="header-right">
+
+            <div class="header-search">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="text"
+                       placeholder="Search...">
+
+            </div>
+
+
+            <button class="header-icon">
+
+                <i class="fa-regular fa-bell"></i>
+
+                <span class="notification-badge">
+                    3
+                </span>
+
+            </button>
+
+
+            <div class="header-admin">
+
+                <div class="header-avatar">
+
+                    <i class="fa-solid fa-user-shield"></i>
+
+                </div>
+
+
+                <div class="header-admin-info">
+
+                    <strong>
+                        {{ session.get('admin_name', 'Administrator') }}
+                    </strong>
+
+                    <span>Admin</span>
+
+                </div>
+
+
+                <i class="fa-solid fa-chevron-down"></i>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= PAGE CONTENT ================= -->
+
+    <section class="dashboard-content">
+
+
+        <!-- WELCOME -->
+
+        <div class="welcome-section">
+
+            <div>
+
+                <h2>Overview</h2>
+
+                <p>
+                    Monitor students, certificates,
+                    verification activities and
+                    blockchain records from one place.
+                </p>
+
+            </div>
+
+
+            <a href="{{ url_for('issue_certificate') }}"
+               class="primary-btn">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Issue Certificate
+
+            </a>
+
+        </div>
+
+
+        <!-- ================= STATISTICS ================= -->
+
+        <div class="stats-grid">
+
+
+            <!-- TOTAL STUDENTS -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <div class="stat-icon students-icon">
+
+                        <i class="fa-solid fa-users"></i>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-info">
+
+                    <span>Total Students</span>
+
+                    <h3>
+                        {{ total_students | default(0) }}
+                    </h3>
+
+                    <p>
+                        Registered students
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- TOTAL CERTIFICATES -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <div class="stat-icon certificate-icon">
+
+                        <i class="fa-solid fa-certificate"></i>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-info">
+
+                    <span>Total Certificates</span>
+
+                    <h3>
+                        {{ total_certificates | default(0) }}
+                    </h3>
+
+                    <p>
+                        Certificates issued
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- VERIFIED CERTIFICATES -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <div class="stat-icon valid-icon">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-info">
+
+                    <span>Valid Certificates</span>
+
+                    <h3>
+                        {{ verified_certificates | default(0) }}
+                    </h3>
+
+                    <p>
+                        Active certificates
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- REVOKED -->
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <div class="stat-icon revoked-icon">
+
+                        <i class="fa-solid fa-ban"></i>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-info">
+
+                    <span>Revoked Certificates</span>
+
+                    <h3>
+                        {{ revoked_certificates | default(0) }}
+                    </h3>
+
+                    <p>
+                        Revoked certificates
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= SECOND ROW ================= -->
+
+        <div class="dashboard-grid">
+
+
+            <!-- VERIFICATION -->
+
+            <div class="dashboard-card verification-card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h3>
+                            Verification Overview
+                        </h3>
+
+                        <p>
+                            Certificate verification activity
+                        </p>
+
+                    </div>
+
+
+                    <a href="{{ url_for('admin_verification') }}"
+                       class="view-all">
+
+                        View All
+
+                    </a>
+
+                </div>
+
+
+                <div class="verification-stats">
+
+
+                    <div class="verification-box">
+
+                        <div class="verification-icon verified">
+
+                            <i class="fa-solid fa-shield-check"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>Successful</span>
+
+                            <strong>
+                                {{ successful_verifications | default(0) }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="verification-box">
+
+                        <div class="verification-icon failed">
+
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>Failed</span>
+
+                            <strong>
+                                {{ failed_verifications | default(0) }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="verification-box">
+
+                        <div class="verification-icon total">
+
+                            <i class="fa-solid fa-shield"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>Total Checks</span>
+
+                            <strong>
+                                {{ total_verifications | default(0) }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-progress">
+
+                    <div class="progress-header">
+
+                        <span>
+                            Verification Success Rate
+                        </span>
+
+                        <strong>
+                            {{ verification_success_rate | default(0) }}%
+                        </strong>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                       <div class="progress-fill"
+     data-progress="{{ verification_success_rate | default(0) }}">
+</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- BLOCKCHAIN -->
+
+            <div class="dashboard-card blockchain-card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h3>
+                            Blockchain Status
+                        </h3>
+
+                        <p>
+                            Network information
+                        </p>
+
+                    </div>
+
+
+                    <span class="network-status">
+
+                        <i class="fa-solid fa-circle"></i>
+
+                        Connected
+
+                    </span>
+
+                </div>
+
+
+                <div class="blockchain-content">
+
+                    <div class="blockchain-main-icon">
+
+                        <i class="fa-solid fa-cubes"></i>
+
+                    </div>
+
+
+                    <div class="blockchain-info">
+
+                        <span>Network</span>
+
+                        <strong>
+                            Local / Test Network
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="blockchain-details">
+
+                    <div>
+
+                        <span>
+                            Blockchain Records
+                        </span>
+
+                        <strong>
+                            {{ total_blockchain_records | default(0) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Confirmed
+                        </span>
+
+                        <strong>
+                            {{ confirmed_blockchain_records | default(0) }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <a href="{{ url_for('blockchain_records') }}"
+                   class="view-link">
+
+                    View Blockchain Records
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= QUICK ACTIONS ================= -->
+
+        <div class="quick-actions-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h3>
+                        Quick Actions
+                    </h3>
+
+                    <p>
+                        Frequently used administrative actions
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="quick-actions">
+
+
+                <!-- ISSUE -->
+
+                <a href="{{ url_for('issue_certificate') }}"
+                   class="quick-action">
+
+                    <div class="quick-icon certificate">
+
+                        <i class="fa-solid fa-certificate"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Issue Certificate
+                        </strong>
+
+                        <span>
+                            Create a new digital certificate
+                        </span>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+
+                <!-- STUDENTS -->
+
+                <a href="{{ url_for('admin_students') }}"
+                   class="quick-action">
+
+                    <div class="quick-icon student">
+
+                        <i class="fa-solid fa-user-plus"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Manage Students
+                        </strong>
+
+                        <span>
+                            Add or update student records
+                        </span>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+
+                <!-- VERIFICATION -->
+
+                <a href="{{ url_for('admin_verification') }}"
+                   class="quick-action">
+
+                    <div class="quick-icon verification">
+
+                        <i class="fa-solid fa-shield-check"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Verification History
+                        </strong>
+
+                        <span>
+                            Review certificate verification
+                        </span>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+
+                <!-- BLOCKCHAIN -->
+
+                <a href="{{ url_for('blockchain_records') }}"
+                   class="quick-action">
+
+                    <div class="quick-icon blockchain">
+
+                        <i class="fa-solid fa-cubes"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Blockchain Records
+                        </strong>
+
+                        <span>
+                            View blockchain transactions
+                        </span>
+
+                    </div>
+
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+
+        <p>
+            © 2026 CertiChain. All rights reserved.
+        </p>
+
+
+        <div>
+
+            <span>
+                Blockchain Certificate Verification System
+            </span>
+
+            <span class="footer-dot">
+                •
+            </span>
+
+            <span>
+                Secure • Transparent • Tamper-Proof
+            </span>
+
+        </div>
+
+    </footer>
+
+</main>
+
+
+</div>
+
+<!-- MOBILE OVERLAY -->
+
+<div class="sidebar-overlay"></div>
+
+<script>
+
+const menuToggle =
+    document.querySelector(".menu-toggle");
+
+const sidebar =
+    document.querySelector(".sidebar");
+
+const overlay =
+    document.querySelector(".sidebar-overlay");
+
+
+if (menuToggle) {
+
+    menuToggle.addEventListener(
+        "click",
+        function () {
+
+            sidebar.classList.toggle("open");
+
+            overlay.classList.toggle("show");
+
+        }
+    );
+
+}
+
+
+if (overlay) {
+
+    overlay.addEventListener(
+        "click",
+        function () {
+
+            sidebar.classList.remove("open");
+
+            overlay.classList.remove("show");
+
+        }
+    );
+
+}
+
+ const progressFill = document.querySelector(".progress-fill");
+
+    if (progressFill) {
+        const progress =
+            parseInt(progressFill.getAttribute("data-progress")) || 0;
+
+        progressFill.style.width = progress + "%";
+    }
+    
+</script>
+
+</body>
+</html>
