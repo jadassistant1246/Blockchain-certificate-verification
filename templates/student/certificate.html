@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ certificate.certificate_id }} - CertiChain</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            background: #eeeeee;
+
+            font-family: Georgia, serif;
+
+            padding: 40px;
+        }
+
+
+        /* Top bar */
+
+        .top-bar {
+            max-width: 950px;
+
+            margin: 0 auto 15px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+        }
+
+
+        .back-btn {
+            text-decoration: none;
+
+            background: #8b4513;
+
+            color: white;
+
+            padding: 10px 18px;
+
+            border-radius: 6px;
+
+            font-family: Arial, sans-serif;
+        }
+
+
+        .download-btn {
+            border: none;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 11px 20px;
+
+            border-radius: 6px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            font-size: 14px;
+        }
+
+        .download-btn:hover {
+            background: #146c43;
+        }
+
+
+        /* Certificate */
+
+        .certificate {
+
+            max-width: 950px;
+
+            min-height: 650px;
+
+            margin: auto;
+
+            background: white;
+
+            border: 12px solid #8b4513;
+
+            padding: 30px;
+
+        }
+
+
+        .inner-border {
+
+            border: 2px solid #d97706;
+
+            min-height: 560px;
+
+            padding: 50px;
+
+            text-align: center;
+
+        }
+
+
+        .logo {
+
+            color: #8b4513;
+
+            font-size: 22px;
+
+            font-weight: bold;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        h1 {
+
+            color: #8b4513;
+
+            font-size: 42px;
+
+            letter-spacing: 3px;
+
+            margin-bottom: 10px;
+
+        }
+
+
+        .subtitle {
+
+            color: #666;
+
+            font-size: 18px;
+
+            margin-bottom: 35px;
+
+        }
+
+
+        .certify {
+
+            color: #555;
+
+            font-size: 17px;
+
+        }
+
+
+        .student-name {
+
+            font-size: 34px;
+
+            font-weight: bold;
+
+            color: #222;
+
+            margin: 20px 0;
+
+        }
+
+
+        .course {
+
+            color: #8b4513;
+
+            font-size: 25px;
+
+            font-weight: bold;
+
+            margin: 20px 0;
+
+        }
+
+
+        .institution {
+
+            color: #444;
+
+            font-size: 17px;
+
+            margin-top: 15px;
+
+        }
+
+
+        .details {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            text-align: left;
+
+            margin-top: 55px;
+
+            font-family: Arial, sans-serif;
+
+        }
+
+
+        .details p {
+
+            margin: 8px 0;
+
+            font-size: 14px;
+
+        }
+
+
+        .status {
+
+            color: #198754;
+
+            font-weight: bold;
+
+        }
+
+
+        .blockchain {
+
+            margin-top: 25px;
+
+            font-family: Arial, sans-serif;
+
+            font-size: 13px;
+
+            color: #666;
+
+        }
+
+
+        /* Popup */
+
+        .popup {
+
+            position: fixed;
+
+            top: 25px;
+
+            right: 25px;
+
+            background: #198754;
+
+            color: white;
+
+            padding: 15px 22px;
+
+            border-radius: 7px;
+
+            display: none;
+
+            font-family: Arial, sans-serif;
+
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+
+        }
+
+
+        @media (max-width: 700px) {
+
+            body {
+                padding: 15px;
+            }
+
+            .certificate {
+                padding: 15px;
+            }
+
+            .inner-border {
+                padding: 25px;
+            }
+
+            .top-bar {
+                flex-direction: column;
+
+                gap: 10px;
+
+                align-items: stretch;
+            }
+
+            .back-btn,
+            .download-btn {
+                text-align: center;
+            }
+
+            .details {
+                flex-direction: column;
+
+                gap: 15px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .student-name {
+                font-size: 25px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- Top Buttons -->
+
+    <div class="top-bar">
+
+        <a
+            href="{{ url_for('student_dashboard') }}"
+            class="back-btn">
+
+            ← Back
+
+        </a>
+
+
+        <button
+            class="download-btn"
+            onclick="downloadCertificate()">
+
+            ⬇ Download Certificate
+
+        </button>
+
+    </div>
+
+
+    <!-- Certificate -->
+
+    <div class="certificate" id="certificate">
+
+
+        <div class="inner-border">
+
+
+            <div class="logo">
+                🔐 CERTICHAIN
+            </div>
+
+
+            <h1>
+                CERTIFICATE
+            </h1>
+
+
+            <div class="subtitle">
+                OF COMPLETION
+            </div>
+
+
+            <p class="certify">
+                This is to certify that
+            </p>
+
+
+            <div class="student-name">
+
+                {{ certificate.student_name }}
+
+            </div>
+
+
+            <p class="certify">
+                has successfully completed
+            </p>
+
+
+            <div class="course">
+
+                {{ certificate.course_name }}
+
+            </div>
+
+
+            <p class="institution">
+
+                Issued by
+
+                <br>
+
+                <strong>
+                    {{ certificate.institution_name }}
+                </strong>
+
+            </p>
+
+
+            <div class="details">
+
+
+                <div>
+
+                    <p>
+                        <strong>Certificate ID:</strong>
+                        {{ certificate.certificate_id }}
+                    </p>
+
+
+                    <p>
+                        <strong>Issue Date:</strong>
+                        {{ certificate.issue_date }}
+                    </p>
+
+
+                    <p>
+                        <strong>Status:</strong>
+
+                        <span class="status">
+                            {{ certificate.blockchain_status }}
+                        </span>
+
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <p>
+                        <strong>Certificate Hash:</strong>
+                    </p>
+
+                    <p>
+                        {{ certificate.certificate_hash }}
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="blockchain">
+
+                Blockchain Certificate • CertiChain
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- Download Popup -->
+
+    <div class="popup" id="downloadPopup">
+
+        Blockchain certificate downloaded successfully!
+
+    </div>
+
+
+    <script>
+
+        function downloadCertificate() {
+
+            window.print();
+
+            const popup =
+                document.getElementById("downloadPopup");
+
+            popup.style.display = "block";
+
+
+            setTimeout(function() {
+
+                popup.style.display = "none";
+
+            }, 3000);
+
+        }
+
+    </script>
+
+
+</body>
+
+</html>
