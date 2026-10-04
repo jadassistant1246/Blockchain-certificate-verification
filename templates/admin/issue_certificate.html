@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Issue Certificate</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            margin: 25px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+            color: #333;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 7px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #4f46e5;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        .required {
+            color: red;
+        }
+
+        .button-area {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            padding: 13px 25px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .issue-btn {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .issue-btn:hover {
+            background: #3730a3;
+        }
+
+        .cancel-btn {
+            background: #ddd;
+            color: #333;
+        }
+
+        .flash {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 7px;
+            background: #ffe5e5;
+            color: #b00020;
+        }
+
+        @media (max-width: 700px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Issue Certificate</h1>
+
+    <p class="subtitle">
+        Admin can issue a digital certificate to a student.
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+
+        <!-- Student Information -->
+
+        <h2 class="section-title">Student Information</h2>
+
+        <div class="form-row">
+
+            <div class="form-group">
+                <label>
+                    Student Name <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    name="student_name"
+                    placeholder="Enter student name"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Student ID <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    name="student_id"
+                    placeholder="Enter student ID"
+                    required
+                >
+            </div>
+
+        </div>
+
+        <div class="form-row">
+
+            <div class="form-group">
+                <label>
+                    Student Email <span class="required">*</span>
+                </label>
+
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="student@example.com"
+                    required
+                >
+            </div>
+
+        </div>
+
+
+        <!-- Certificate Information -->
+
+        <h2 class="section-title">Certificate Information</h2>
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label>
+                    Certificate Type <span class="required">*</span>
+                </label>
+
+                <select name="certificate_type" required>
+
+                    <option value="">
+                        Select Certificate Type
+                    </option>
+
+                    <option value="Degree Certificate">
+                        Degree Certificate
+                    </option>
+
+                    <option value="Diploma Certificate">
+                        Diploma Certificate
+                    </option>
+
+                    <option value="Course Completion Certificate">
+                        Course Completion Certificate
+                    </option>
+
+                    <option value="Internship Certificate">
+                        Internship Certificate
+                    </option>
+
+                    <option value="Achievement Certificate">
+                        Achievement Certificate
+                    </option>
+
+                    <option value="Merit Certificate">
+                        Merit Certificate
+                    </option>
+
+                    <option value="Participation Certificate">
+                        Participation Certificate
+                    </option>
+
+                    <option value="Bonafide Certificate">
+                        Bonafide Certificate
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Course / Program</label>
+
+                <input
+                    type="text"
+                    name="course"
+                    placeholder="e.g. B.Sc Computer Science"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label>Department</label>
+
+                <input
+                    type="text"
+                    name="department"
+                    placeholder="e.g. Computer Science"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Institution</label>
+
+                <input
+                    type="text"
+                    name="institution"
+                    placeholder="Enter college/university name"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label>
+                    Issue Date <span class="required">*</span>
+                </label>
+
+                <input
+                    type="date"
+                    name="issue_date"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>Grade / Percentage</label>
+
+                <input
+                    type="text"
+                    name="grade"
+                    placeholder="e.g. 85% / A+"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group full">
+
+                <label>Certificate Description</label>
+
+                <textarea
+                    name="description"
+                    placeholder="Enter certificate description..."
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+        <!-- Buttons -->
+
+        <div class="button-area">
+
+            <button
+                type="submit"
+                class="btn issue-btn"
+            >
+                Issue Certificate
+            </button>
+
+            <a
+                href="{{ url_for('admin_dashboard') }}"
+                class="btn cancel-btn"
+            >
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

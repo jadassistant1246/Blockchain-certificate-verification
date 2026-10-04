@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Certificate Issued</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 50px;
+        }
+
+        .success-box {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .icon {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #198754;
+            margin-bottom: 20px;
+        }
+
+        .details {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .details p {
+            margin: 10px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 22px;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="success-box">
+
+    <div class="icon">✅</div>
+
+    <h1>Certificate Issued Successfully!</h1>
+
+    <div class="details">
+
+        <p>
+            <strong>Certificate ID:</strong>
+            {{ certificate.certificate_id }}
+        </p>
+
+        <p>
+            <strong>Student:</strong>
+            {{ certificate.student_name }}
+        </p>
+
+        <p>
+            <strong>Certificate Type:</strong>
+            {{ certificate.certificate_type }}
+        </p>
+
+        <p>
+            <strong>Issue Date:</strong>
+            {{ certificate.issue_date }}
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            {{ certificate.status }}
+        </p>
+
+        <p>
+            <strong>Certificate Hash:</strong><br>
+            {{ certificate.certificate_hash }}
+        </p>
+
+    </div>
+
+    <a
+        href="{{ url_for('admin_dashboard') }}"
+        class="btn"
+    >
+        Back to Dashboard
+    </a>
+
+</div>
+
+</body>
+</html>

@@ -855,382 +855,198 @@
 
                 <!-- ================= PASSWORD ================= -->
 
-                <div class="settings-card" id="password">
+            
+<div class="settings-card" id="password">
 
-                    <div class="card-header">
+    <div class="card-header">
 
-                        <h2>
-                            Change Password
-                        </h2>
+        <div>
+            <h2>
+                Change Password
+            </h2>
 
-                        <p>
-                            Change your administrator account password.
-                        </p>
+            <p>
+                Change your administrator account password.
+            </p>
+        </div>
 
-                    </div>
+        <!-- Change Password Button -->
+        <button
+            type="button"
+            class="btn btn-primary"
+            id="changePasswordBtn"
+            onclick="showPasswordFields()"
+        >
+            <i class="fa-solid fa-key"></i>
+            Change Password
+        </button>
 
+    </div>
 
-                    <form action="{{ url_for('change_password') }}" method="POST">
 
-                        <div class="form-grid">
+    <!-- Password Fields - Hidden Initially -->
+    <div id="passwordFields" style="display: none;">
 
-                            <div class="form-group full">
+        <form action="{{ url_for('change_password') }}" method="POST">
 
-                                <label>
-                                    Current Password
-                                </label>
+            <div class="form-grid">
 
-                                <div class="password-wrapper">
+                <!-- Current Password -->
+                <div class="form-group full">
 
-                                    <input
-                                        type="password"
-                                        id="currentPassword"
-                                        name="current_password"
-                                        required
-                                    >
+                    <label>
+                        Current Password
+                    </label>
 
-                                    <i
-                                        class="fa-solid fa-eye"
-                                        onclick="togglePassword('currentPassword', this)"
-                                    ></i>
+                    <div class="password-wrapper">
 
-                                </div>
+                        <input
+                            type="password"
+                            id="currentPassword"
+                            name="current_password"
+                        >
 
-                            </div>
-
-
-                            <div class="form-group">
-
-                                <label>
-                                    New Password
-                                </label>
-
-                                <div class="password-wrapper">
-
-                                    <input
-                                        type="password"
-                                        id="newPassword"
-                                        name="new_password"
-                                        required
-                                    >
-
-                                    <i
-                                        class="fa-solid fa-eye"
-                                        onclick="togglePassword('newPassword', this)"
-                                    ></i>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="form-group">
-
-                                <label>
-                                    Confirm New Password
-                                </label>
-
-                                <div class="password-wrapper">
-
-                                    <input
-                                        type="password"
-                                        id="confirmPassword"
-                                        name="confirm_password"
-                                        required
-                                    >
-
-                                    <i
-                                        class="fa-solid fa-eye"
-                                        onclick="togglePassword('confirmPassword', this)"
-                                    ></i>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="form-actions">
-
-                            <button
-                                type="submit"
-                                class="btn btn-primary"
-                            >
-                                <i class="fa-solid fa-key"></i>
-                                Update Password
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-
-                <!-- ================= SECURITY ================= -->
-
-                <div class="settings-card" id="security">
-
-                    <div class="card-header">
-
-                        <h2>
-                            Security Settings
-                        </h2>
-
-                        <p>
-                            Manage security options for the administrator account.
-                        </p>
-
-                    </div>
-
-
-                    <div class="security-item">
-
-                        <div class="security-left">
-
-                            <div class="security-icon">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-
-                            <div class="security-text">
-
-                                <h4>
-                                    Two-Factor Authentication
-                                </h4>
-
-                                <p>
-                                    Add an extra layer of security to your account.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <label class="switch">
-
-                            <input
-                                type="checkbox"
-                                name="two_factor"
-                            >
-
-                            <span class="slider"></span>
-
-                        </label>
-
-                    </div>
-
-
-                    <div class="security-item">
-
-                        <div class="security-left">
-
-                            <div class="security-icon">
-                                <i class="fa-solid fa-clock"></i>
-                            </div>
-
-                            <div class="security-text">
-
-                                <h4>
-                                    Login Session Monitoring
-                                </h4>
-
-                                <p>
-                                    Monitor active administrator login sessions.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <label class="switch">
-
-                            <input
-                                type="checkbox"
-                                checked
-                                name="session_monitoring"
-                            >
-
-                            <span class="slider"></span>
-
-                        </label>
-
-                    </div>
-
-
-                    <div class="security-item">
-
-                        <div class="security-left">
-
-                            <div class="security-icon">
-                                <i class="fa-solid fa-file-shield"></i>
-                            </div>
-
-                            <div class="security-text">
-
-                                <h4>
-                                    Blockchain Verification
-                                </h4>
-
-                                <p>
-                                    Verify certificate records against blockchain data.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <label class="switch">
-
-                            <input
-                                type="checkbox"
-                                checked
-                                name="blockchain_verification"
-                            >
-
-                            <span class="slider"></span>
-
-                        </label>
+                        <i
+                            class="fa-solid fa-eye"
+                            onclick="togglePassword('currentPassword', this)"
+                        ></i>
 
                     </div>
 
                 </div>
 
 
-                <!-- ================= NOTIFICATIONS ================= -->
+                <!-- New Password -->
+                <div class="form-group">
 
-                <div class="settings-card" id="notifications">
+                    <label>
+                        New Password
+                    </label>
 
-                    <div class="card-header">
+                    <div class="password-wrapper">
 
-                        <h2>
-                            Notification Settings
-                        </h2>
+                        <input
+                            type="password"
+                            id="newPassword"
+                            name="new_password"
+                        >
 
-                        <p>
-                            Choose which system notifications you want to receive.
-                        </p>
-
-                    </div>
-
-
-                    <div class="security-item">
-
-                        <div class="security-left">
-
-                            <div class="security-icon">
-                                <i class="fa-solid fa-certificate"></i>
-                            </div>
-
-                            <div class="security-text">
-
-                                <h4>
-                                    Certificate Notifications
-                                </h4>
-
-                                <p>
-                                    Receive notifications when certificates are issued.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <label class="switch">
-
-                            <input
-                                type="checkbox"
-                                checked
-                                name="certificate_notifications"
-                            >
-
-                            <span class="slider"></span>
-
-                        </label>
-
-                    </div>
-
-
-                    <div class="security-item">
-
-                        <div class="security-left">
-
-                            <div class="security-icon">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-
-                            <div class="security-text">
-
-                                <h4>
-                                    Verification Notifications
-                                </h4>
-
-                                <p>
-                                    Receive notifications about certificate verification.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <label class="switch">
-
-                            <input
-                                type="checkbox"
-                                checked
-                                name="verification_notifications"
-                            >
-
-                            <span class="slider"></span>
-
-                        </label>
-
-                    </div>
-
-
-                    <div class="security-item">
-
-                        <div class="security-left">
-
-                            <div class="security-icon">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                            </div>
-
-                            <div class="security-text">
-
-                                <h4>
-                                    Security Alerts
-                                </h4>
-
-                                <p>
-                                    Receive important security and system alerts.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                        <label class="switch">
-
-                            <input
-                                type="checkbox"
-                                checked
-                                name="security_alerts"
-                            >
-
-                            <span class="slider"></span>
-
-                        </label>
+                        <i
+                            class="fa-solid fa-eye"
+                            onclick="togglePassword('newPassword', this)"
+                        ></i>
 
                     </div>
 
                 </div>
+
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+
+                    <label>
+                        Confirm New Password
+                    </label>
+
+                    <div class="password-wrapper">
+
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirm_password"
+                        >
+
+                        <i
+                            class="fa-solid fa-eye"
+                            onclick="togglePassword('confirmPassword', this)"
+                        ></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Buttons -->
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    <i class="fa-solid fa-key"></i>
+                    Update Password
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="hidePasswordFields()"
+                >
+                    Cancel
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function showPasswordFields() {
+
+    document.getElementById("passwordFields").style.display = "block";
+
+    document.getElementById("changePasswordBtn").style.display = "none";
+
+}
+
+
+function hidePasswordFields() {
+
+    document.getElementById("passwordFields").style.display = "none";
+
+    document.getElementById("changePasswordBtn").style.display = "inline-block";
+
+    // Clear password fields
+    document.getElementById("currentPassword").value = "";
+    document.getElementById("newPassword").value = "";
+    document.getElementById("confirmPassword").value = "";
+
+}
+
+
+function togglePassword(inputId, icon) {
+
+    const input = document.getElementById(inputId);
+
+    if (input.type === "password") {
+
+        input.type = "text";
+
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+
+    } else {
+
+        input.type = "password";
+
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+
+    }
+
+}
+
+</script>
+
+
+                
 
 
                 <!-- ================= SYSTEM INFORMATION ================= -->

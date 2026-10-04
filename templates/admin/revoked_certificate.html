@@ -513,64 +513,71 @@
     <aside class="sidebar">
 
         <div class="logo">
-            Block<span>Cert</span>
+            <i class="fa-solid fa-cubes"></i>
+            BlockCert
         </div>
 
+        <div class="menu-title">Main Menu</div>
 
         <ul class="menu">
 
             <li>
                 <a href="{{ url_for('admin_dashboard') }}">
-                    Dashboard
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
                 </a>
             </li>
-
 
             <li>
                 <a href="{{ url_for('admin_students') }}">
-                    Students
+                    <i class="fa-solid fa-users"></i>
+                    <span>Students</span>
                 </a>
             </li>
-
 
             <li>
                 <a href="{{ url_for('admin_certificates') }}">
-                    Certificates
+                    <i class="fa-solid fa-certificate"></i>
+                    <span>Certificates</span>
                 </a>
             </li>
-
 
             <li>
                 <a href="{{ url_for('admin_verification') }}">
-                    Verification
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Verification</span>
                 </a>
             </li>
-
-
             <li>
                 <a href="{{ url_for('revoked_certificates') }}"
-                   class="active">
-                    Revoked Certificates
+           class="nav-item">
+
+            <i class="fa-solid fa-ban"></i>
+
+            <span>Revoked Certificates</span>
+
+             </a>
+            </li>
+             
+        
+            <li>
+                <a href="{{ url_for('blockchain_records') }}" class="active">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Blockchain Records</span>
                 </a>
             </li>
 
-
             <li>
-    <a href="{{ url_for('blockchain_records') }}">
-        Blockchain Records
-    </a>
-</li>
-
-<li>
-    <a href="{{ url_for('admin_settings') }}">
-        Settings
-    </a>
-</li>
-
+                <a href="{{ url_for('admin_settings') }}">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
 
             <li>
                 <a href="{{ url_for('logout') }}">
-                    Logout
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
                 </a>
             </li>
 
