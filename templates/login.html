@@ -150,7 +150,7 @@
         {% endwith %}
 
         <!-- Login Form -->
-        <form action="/login" method="POST">
+        <form action="/login" method="POST" autocomplete="off">
 
             <div class="form-group">
                 <label for="email">Email</label>
@@ -159,6 +159,7 @@
                     type="email"
                     id="email"
                     name="email"
+                    autocomplete="off"
                     placeholder="Enter your email"
                     required
                 >
@@ -171,6 +172,7 @@
                     type="password"
                     id="password"
                     name="password"
+                    autocomplete="off"
                     placeholder="Enter your password"
                     required
                 >

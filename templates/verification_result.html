@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verification Result - CertiChain</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f6fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+
+        /* Navbar */
+
+        .navbar {
+            background: linear-gradient(135deg, #8b4513, #d97706);
+            color: white;
+            padding: 25px 50px;
+            display: flex;
+            align-items: center;
+        }     
+    
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .verify-again-btn {
+            margin-left: auto;
+            background: white;
+            color: #8b4513;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .verified-certificates-btn {
+            margin-left: 10px;
+            background: white;
+            color: #8b4513;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Main Container */
+
+        .container {
+            width: 90%;
+
+            max-width: 750px;
+
+            margin: 55px auto;
+        }
+
+
+        /* Heading */
+
+        .heading {
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+        .heading h1 {
+            font-size: 34px;
+
+            color: #333;
+
+            margin-bottom: 10px;
+        }
+
+        .heading p {
+            color: #666;
+
+            font-size: 16px;
+        }
+
+
+        /* Result Card */
+
+        .result-card {
+            background: white;
+
+            padding: 35px;
+
+            border-radius: 12px;
+
+            border: 1px solid #ddd;
+        }
+
+
+        /* Result Heading */
+
+        .result-card h2 {
+            color: #8b4513;
+
+            margin-bottom: 25px;
+
+            text-align: center;
+        }
+
+
+        /* Result Rows */
+
+        .result-row {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            padding: 14px 0;
+
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: bold;
+
+            color: #555;
+        }
+
+        .result-value {
+            color: #333;
+
+            text-align: right;
+        }
+
+
+        /* Valid Status */
+
+        .valid-status {
+            color: #198754;
+
+            font-weight: bold;
+
+            font-size: 18px;
+        }
+
+
+        /* Invalid Status */
+
+        .invalid-status {
+            color: #dc3545;
+
+            font-weight: bold;
+
+            font-size: 18px;
+        }
+
+
+        /* Status Box */
+
+        .status-box {
+            text-align: center;
+
+            padding: 18px;
+
+            margin-bottom: 25px;
+
+            border-radius: 8px;
+        }
+
+        .valid-box {
+            background: #eaf7ef;
+
+            border: 1px solid #b7dfc5;
+        }
+
+        .invalid-box {
+            background: #fdecec;
+
+            border: 1px solid #f1b8b8;
+        }
+
+
+        .status-box h3 {
+            font-size: 24px;
+        }
+
+
+        /* Verify Again */
+
+        .verify-again {
+            display: block;
+
+            width: 250px;
+
+            margin: 30px auto 0;
+
+            padding: 13px;
+
+            text-align: center;
+
+            background: #8b4513;
+
+            color: white;
+
+            border-radius: 6px;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+
+        .verify-again:hover {
+            background: #6f350f;
+        }
+
+        .verified-certificates {
+            display: block;
+
+            width: 250px;
+
+            margin: 30px auto 0;
+
+            padding: 13px;
+
+            text-align: center;
+
+            background:white;
+
+            color:#8b4513;
+
+            border-radius: 6px;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+        .verified-certificates:hover {
+            background: #6f350f;
+        }
+        /* No Result */
+
+        .no-result {
+            text-align: center;
+
+            padding: 30px;
+
+            color: #dc3545;
+
+            font-weight: bold;
+
+            font-size: 20px;
+        }
+
+
+        /* Footer */
+
+        .footer {
+            text-align: center;
+
+            margin-top: 50px;
+
+            padding: 20px;
+
+            color: #777;
+
+            font-size: 14px;
+        }
+
+
+        /* Responsive */
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .container {
+                width: 95%;
+
+                margin: 35px auto;
+            }
+
+            .result-card {
+                padding: 25px;
+            }
+
+            .result-row {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 6px;
+            }
+
+            .result-value {
+                text-align: left;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        🔐 CertiChain
+    </div>
+
+    <a
+        href="{{ url_for('verify_certificate') }}"
+        class="verify-again-btn"
+    >
+        Verify Another
+    </a>
+
+    <a
+        href="{{ url_for('verified_certificates') }}"
+        class="verified-certificates-btn"
+    >
+        Verified Certificates
+    </a>
+
+</nav>
+
+
+    <!-- Main Container -->
+
+    <div class="container">
+
+
+        <!-- Heading -->
+
+        <div class="heading">
+
+            <h1>
+                Verification Result
+            </h1>
+
+            <p>
+                Blockchain-based certificate authenticity verification
+            </p>
+
+        </div>
+
+
+        <!-- Result -->
+
+        <div class="result-card">
+
+
+            {% if result %}
+
+
+                <h2>
+                    Certificate Details
+                </h2>
+
+
+                <!-- Status -->
+
+                {% if result.valid %}
+
+                    <div class="status-box valid-box">
+
+                        <h3 class="valid-status">
+                            ✓ CERTIFICATE VALID
+                        </h3>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="status-box invalid-box">
+
+                        <h3 class="invalid-status">
+                            ✗ REVOKED / INVALID
+                        </h3>
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- Certificate ID -->
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Certificate ID
+                    </span>
+
+                    <span class="result-value">
+                        {{ result.certificateId }}
+                    </span>
+
+                </div>
+
+
+                <!-- Student Name -->
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Student Name
+                    </span>
+
+                    <span class="result-value">
+                        {{ result.studentName }}
+                    </span>
+
+                </div>
+
+
+                <!-- Course -->
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Course
+                    </span>
+
+                    <span class="result-value">
+                        {{ result.courseName }}
+                    </span>
+
+                </div>
+
+
+                <!-- Institution -->
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Institution
+                    </span>
+
+                    <span class="result-value">
+                        {{ result.institutionName }}
+                    </span>
+
+                </div>
+
+
+                <!-- Status -->
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Status
+                    </span>
+
+                    <span class="result-value">
+
+                        {% if result.valid %}
+
+                            <span class="valid-status">
+                                ✓ VALID
+                            </span>
+
+                        {% else %}
+
+                            <span class="invalid-status">
+                                ✗ {{ result.status }}
+                            </span>
+
+                        {% endif %}
+
+                    </span>
+
+                </div>
+
+
+                <!-- Verify Again Button -->
+
+                <a
+                    href="{{ url_for('verify_certificate') }}"
+                    class="verify-again"
+                >
+                    Verify Another Certificate
+                </a>
+
+
+            {% else %}
+
+
+                <div class="no-result">
+
+                    No verification result found.
+
+                </div>
+
+
+                <a
+                    href="{{ url_for('verify_certificate') }}"
+                    class="verify-again"
+                >
+                    Go to Verification
+
+                </a>
+
+
+            {% endif %}
+
+
+        </div>
+
+
+        <!-- Footer -->
+
+        <div class="footer">
+
+            Blockchain-based Certificate Verification System
+
+        </div>
+
+
+    </div>
+
+
+</body>
+
+</html>
