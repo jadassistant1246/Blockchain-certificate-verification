@@ -88,7 +88,42 @@
             padding: 25px;
             color: #777;
         }
+  .certificates-section {
+    margin-top: 30px;
+}
 
+.certificate-card {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.certificate-card h3 {
+    margin-bottom: 15px;
+}
+
+.certificate-card p {
+    margin: 8px 0;
+}
+
+.certificate-card a {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 18px;
+    text-decoration: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+}
+
+.no-certificates {
+    padding: 20px;
+    border-radius: 10px;
+    background: #f5f5f5;
+}
         @media (max-width: 650px) {
             .info {
                 grid-template-columns: 1fr;
@@ -197,43 +232,70 @@
         </div>
 
 
-        <!-- Certificates -->
-        <div class="card">
+       <!-- ==========================================
+     MY CERTIFICATES
+========================================== -->
+<div class="certificates-section">
 
-            <h2>📜 My Certificates</h2>
+    <h2>My Certificates</h2>
 
-            {% if certificates %}
+    {% if certificates %}
 
-                {% for certificate in certificates %}
+        {% for certificate in certificates %}
 
-                    <div class="info-box">
+            <div class="certificate-card">
 
-                        <h3>
-                            {{ certificate.certificate_name }}
-                        </h3>
+                <h3>
+                    {{ certificate.certificate_type }}
+                </h3>
 
-                        <p>
-                            Certificate ID:
-                            {{ certificate.certificate_id }}
-                        </p>
+                <p>
+                    <strong>Certificate ID:</strong>
+                    {{ certificate.certificate_id }}
+                </p>
 
-                    </div>
+                <p>
+                    <strong>Course:</strong>
+                    {{ certificate.course }}
+                </p>
 
-                {% endfor %}
+                <p>
+                    <strong>Issue Date:</strong>
+                    {{ certificate.issue_date }}
+                </p>
 
-            {% else %}
+                <p>
+                    <strong>Status:</strong>
+                    {{ certificate.status }}
+                </p>
 
-                <div class="no-certificates">
+                <p>
+                    <strong>Blockchain:</strong>
+                    {{ certificate.blockchain_status }}
+                </p>
 
+                {% if certificate.transaction_hash %}
                     <p>
-                        No certificates issued yet.
+                        <strong>Transaction:</strong>
+                        {{ certificate.transaction_hash }}
                     </p>
+                {% endif %}
 
-                </div>
+                <a href="{{ url_for('student_certificate', certificate_id=certificate.certificate_id) }}">
+                    View Certificate
+                </a>
 
-            {% endif %}
+            </div>
 
-        </div>
+        {% endfor %}
+
+    {% else %}
+
+        <p>No certificates have been issued to you yet.</p>
+
+    {% endif %}
+
+</div>
 
     </div>
 

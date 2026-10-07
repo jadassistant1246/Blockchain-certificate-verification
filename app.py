@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from blockchain import Blockchain
+from web3 import Web3
+import json
 
 from datetime import datetime
 import hashlib
@@ -14,6 +16,25 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
+from web3 import Web3
+import json
+
+GANACHE_URL = "http://127.0.0.1:7545"
+
+web3 = Web3(
+    Web3.HTTPProvider(GANACHE_URL)
+)
+
+print("Blockchain connected:", web3.is_connected())
+
+with open("blockchain/contract_abi.json", "r") as file:
+    CONTRACT_ABI = json.load(file)
+
+CONTRACT_ADDRESS = "0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8"
+contract = web3.eth.contract(
+    address=CONTRACT_ADDRESS,
+    abi=CONTRACT_ABI
+)
 # =====================================================
 # FLASK APPLICATION
 # =====================================================
@@ -58,7 +79,79 @@ def get_db_connection():
 
         return None
 
+@app.route('/test-blockchain')
+def test_blockchain():
 
+    try:
+
+        # Ganache account
+        blockchain_account = web3.eth.accounts[0]
+
+        # Dummy certificate information
+        certificate_id = "TEST001"
+        certificate_hash = "abc123dummyhash456"
+
+        # Send certificate hash to blockchain
+        transaction = contract.functions.issueCertificate(
+            certificate_id,
+            certificate_hash
+        ).transact({
+            "from": blockchain_account
+        })
+
+        # Wait for transaction confirmation
+        receipt = web3.eth.wait_for_transaction_receipt(
+            transaction
+        )
+
+        return f"""
+        <h2>Blockchain Test Successful</h2>
+
+        <p><b>Certificate ID:</b> {certificate_id}</p>
+
+        <p><b>Certificate Hash:</b> {certificate_hash}</p>
+
+        <p><b>Transaction Hash:</b> {receipt.transactionHash.hex()}</p>
+
+        <p><b>Block Number:</b> {receipt.blockNumber}</p>
+        """
+
+    except Exception as e:
+
+        return f"""
+        <h2>Blockchain Test Failed</h2>
+
+        <p>{str(e)}</p>
+        """
+
+@app.route('/test-blockchain-verify')
+def test_blockchain_verify():
+
+    try:
+
+        certificate_id = "TEST001"
+
+        certificate_hash, exists = contract.functions.verifyCertificate(
+            certificate_id
+        ).call()
+
+        return f"""
+        <h2>Blockchain Verification Test</h2>
+
+        <p><b>Certificate ID:</b> {certificate_id}</p>
+
+        <p><b>Hash from Blockchain:</b> {certificate_hash}</p>
+
+        <p><b>Certificate Exists:</b> {exists}</p>
+        """
+
+    except Exception as e:
+
+        return f"""
+        <h2>Blockchain Verification Failed</h2>
+
+        <p>{str(e)}</p>
+        """
 # =====================================================
 # ADMIN LOGIN REQUIRED
 # =====================================================
@@ -260,42 +353,151 @@ def student_dashboard():
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
 
-    cursor.execute(
-        """
-        SELECT
-            student_id,
-            student_name,
-            email,
-            phone,
-            department,
-            course,
-            enrollment_no,
-            admission_year,
-            status
-        FROM students
-        WHERE student_id = %s
-        """,
-        (session["student_id"],)
-    )
+    try:
 
-    student = cursor.fetchone()
+        # Get logged-in student
+        cursor.execute("""
+            SELECT
+                student_id,
+                student_name,
+                email,
+                phone,
+                department,
+                course,
+                enrollment_no,
+                admission_year,
+                status
+            FROM students
+            WHERE student_id = %s
+        """, (session["student_id"],))
 
-    cursor.close()
-    connection.close()
+        student = cursor.fetchone()
+
+        # Get certificates of logged-in student
+        cursor.execute("""
+            SELECT
+                certificate_id,
+                student_id,
+                certificate_type,
+                course,
+                issue_date,
+                certificate_hash,
+                pdf_path,
+                status,
+                blockchain_status,
+                transaction_hash
+            FROM certificates
+            WHERE student_id = %s
+            ORDER BY issue_date DESC
+        """, (session["student_id"],))
+
+        certificates = cursor.fetchall()
+
+    finally:
+        cursor.close()
+        connection.close()
 
     if not student:
         session.clear()
         flash("Student account not found.", "danger")
         return redirect(url_for("student_login"))
 
-    # Temporary empty list until certificate table is connected 
-    certificates = []
-
     return render_template(
-    "student/dashboard.html",
-    student=student,
-    certificates=certificates
+        "student/dashboard.html",
+        student=student,
+        certificates=certificates
     )
+
+@app.route('/student/certificate/<int:certificate_id>')
+def student_certificate(certificate_id):
+
+    # Check student login
+    if "student_id" not in session:
+        flash("Please login first.", "danger")
+        return redirect(url_for("student_login"))
+
+    connection = get_db_connection()
+
+    if connection is None:
+        flash("Database connection failed.", "danger")
+        return redirect(url_for("student_dashboard"))
+
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+
+        # Get ONLY the selected certificate
+        # belonging to the logged-in student
+        cursor.execute("""
+            SELECT
+                c.certificate_id,
+                c.student_id,
+                c.certificate_type,
+                c.course,
+                c.issue_date,
+                c.certificate_hash,
+                c.pdf_path,
+                c.status,
+                c.blockchain_status,
+                c.transaction_hash,
+
+                s.student_name,
+                s.email,
+                s.department,
+                s.enrollment_no
+
+            FROM certificates c
+
+            INNER JOIN students s
+                ON c.student_id = s.student_id
+
+            WHERE c.certificate_id = %s
+            AND c.student_id = %s
+
+        """, (
+            certificate_id,
+            session["student_id"]
+        ))
+
+        certificate = cursor.fetchone()
+
+    except Error as e:
+
+        print("Student certificate error:", e)
+
+        flash(
+            "Error loading certificate.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("student_dashboard")
+        )
+
+    finally:
+
+        cursor.close()
+        connection.close()
+
+    # Certificate doesn't exist
+    # or doesn't belong to this student
+    if certificate is None:
+
+        flash(
+            "Certificate not found.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("student_dashboard")
+        )
+
+    # Send ONE certificate to HTML
+    return render_template(
+        "student/certificate.html",
+        certificate=certificate
+    )
+
 
 # =====================================================
 # ADMIN LOGIN
@@ -1187,7 +1389,6 @@ def admin_certificates():
 # =====================================================
 # ISSUE CERTIFICATE
 # =====================================================
-
 @app.route("/admin/issue-certificate", methods=["GET", "POST"])
 def issue_certificate():
 
@@ -1199,131 +1400,242 @@ def issue_certificate():
     if request.method == "POST":
 
         # Get form data
-        student_name = request.form.get("student_name")
         student_id = request.form.get("student_id")
-        email = request.form.get("email")
         certificate_type = request.form.get("certificate_type")
         course = request.form.get("course")
-        department = request.form.get("department")
-        institution = request.form.get("institution")
         issue_date = request.form.get("issue_date")
-        grade = request.form.get("grade")
-        description = request.form.get("description")
 
         # Basic validation
-        if not student_name or not student_id or not email:
-            flash("Please fill all required student details.", "danger")
+        if not student_id:
+            flash("Please select a student.", "danger")
             return redirect(url_for("issue_certificate"))
 
         if not certificate_type:
             flash("Please select a certificate type.", "danger")
             return redirect(url_for("issue_certificate"))
 
-        # Generate unique certificate ID
-        certificate_id = "CERT-" + datetime.now().strftime("%Y%m%d") + "-" + uuid.uuid4().hex[:6].upper()
+        if not course:
+            flash("Please enter the course.", "danger")
+            return redirect(url_for("issue_certificate"))
 
-        # Create certificate data
-        certificate_data = (
-            student_name +
-            student_id +
-            email +
-            certificate_type +
-            course +
-            department +
-            institution +
-            issue_date +
-            grade +
-            description
-        )
+        if not issue_date:
+            flash("Please select the issue date.", "danger")
+            return redirect(url_for("issue_certificate"))
 
-        # Generate SHA-256 hash
-        certificate_hash = hashlib.sha256(
-            certificate_data.encode()
-        ).hexdigest()
+        connection = None
+        cursor = None
 
         try:
-            cursor = mysql.connection.cursor()
+
+            # Connect to MySQL
+            connection = get_db_connection()
+            cursor = connection.cursor(dictionary=True)
+
+            # -----------------------------------------
+            # Get selected student
+            # -----------------------------------------
+
+            cursor.execute("""
+                SELECT
+                    student_id,
+                    student_name,
+                    email,
+                    course
+                FROM students
+                WHERE student_id = %s
+            """, (student_id,))
+
+            student = cursor.fetchone()
+
+            if not student:
+                flash("Selected student does not exist.", "danger")
+                return redirect(url_for("issue_certificate"))
+
+            # -----------------------------------------
+            # Generate certificate ID
+            # -----------------------------------------
+
+            certificate_id = (
+                "CERT-" +
+                datetime.now().strftime("%Y%m%d") +
+                "-" +
+                uuid.uuid4().hex[:6].upper()
+            )
+
+            # -----------------------------------------
+            # Create certificate data
+            # -----------------------------------------
+
+            certificate_data = (
+                f"{certificate_id}|"
+                f"{student['student_id']}|"
+                f"{certificate_type}|"
+                f"{course}|"
+                f"{issue_date}"
+            )
+
+            # -----------------------------------------
+            # Generate SHA-256 hash
+            # -----------------------------------------
+
+            certificate_hash = hashlib.sha256(
+                certificate_data.encode("utf-8")
+            ).hexdigest()
+
+            # -----------------------------------------
+            # Insert certificate into database
+            # -----------------------------------------
 
             query = """
                 INSERT INTO certificates
                 (
-                    certificate_id,
-                    student_name,
                     student_id,
-                    email,
                     certificate_type,
                     course,
-                    department,
-                    institution,
                     issue_date,
-                    grade,
-                    description,
                     certificate_hash,
-                    status
+                    status,
+                    blockchain_status
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES
+                (
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s
+                )
             """
 
             values = (
-                certificate_id,
-                student_name,
-                student_id,
-                email,
+                student["student_id"],
                 certificate_type,
                 course,
-                department,
-                institution,
                 issue_date,
-                grade,
-                description,
                 certificate_hash,
-                "Issued"
+                "Verified",
+                "Pending"
             )
 
             cursor.execute(query, values)
-            mysql.connection.commit()
-            cursor.close()
+
+            # -----------------------------------------
+            # Get generated database ID
+            # -----------------------------------------
+
+            database_certificate_id = cursor.lastrowid
+
+            # -----------------------------------------
+            # Save changes
+            # -----------------------------------------
+
+            connection.commit()
+
+            print("----------------------------------------")
+            print("CERTIFICATE ISSUED SUCCESSFULLY")
+            print("Database ID:", database_certificate_id)
+            print("Student ID:", student["student_id"])
+            print("Student Name:", student["student_name"])
+            print("Certificate Type:", certificate_type)
+            print("Certificate Hash:", certificate_hash)
+            print("----------------------------------------")
 
             flash(
-                f"Certificate issued successfully! Certificate ID: {certificate_id}",
+                f"Certificate issued successfully to {student['student_name']}!",
                 "success"
             )
 
             return redirect(
                 url_for(
                     "certificate_success",
-                    certificate_id=certificate_id
+                    certificate_id=database_certificate_id
                 )
             )
 
         except Exception as e:
-            mysql.connection.rollback()
-            flash(f"Error issuing certificate: {str(e)}", "danger")
+
+            if connection:
+                connection.rollback()
+
+            print("ERROR ISSUING CERTIFICATE:", str(e))
+
+            flash(
+                f"Error issuing certificate: {str(e)}",
+                "danger"
+            )
+
+            return redirect(url_for("issue_certificate"))
+
+        finally:
+
+            if cursor:
+                cursor.close()
 
     return render_template("admin/issue_certificate.html")
 
 
-@app.route("/admin/certificate-success/<certificate_id>")
+@app.route("/admin/certificate-success/<int:certificate_id>")
 def certificate_success(certificate_id):
 
     if "admin_id" not in session:
+        flash("Please login as admin first.", "warning")
         return redirect(url_for("admin_login"))
 
-    cursor = mysql.connection.cursor(dictionary=True)
+    connection = None
+    cursor = None
 
-    cursor.execute(
-        "SELECT * FROM certificates WHERE certificate_id = %s",
-        (certificate_id,)
-    )
+    try:
 
-    certificate = cursor.fetchone()
-    cursor.close()
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-    return render_template(
-        "admin/certificate_success.html",
-        certificate=certificate
-    )
+        cursor.execute("""
+            SELECT
+                c.certificate_id,
+                c.student_id,
+                c.certificate_type,
+                c.course,
+                c.issue_date,
+                c.certificate_hash,
+                c.status,
+                c.blockchain_status,
+                c.transaction_hash,
+                s.student_name,
+                s.email
+            FROM certificates c
+            INNER JOIN students s
+                ON c.student_id = s.student_id
+            WHERE c.certificate_id = %s
+        """, (certificate_id,))
 
+        certificate = cursor.fetchone()
+
+        if not certificate:
+            flash("Certificate not found.", "danger")
+            return redirect(url_for("admin_certificates"))
+
+        return render_template(
+            "admin/certificate_success.html",
+            certificate=certificate
+        )
+
+    except Exception as e:
+
+        print("CERTIFICATE SUCCESS ERROR:", str(e))
+
+        flash(
+            f"Error loading certificate: {str(e)}",
+            "danger"
+        )
+
+        return redirect(url_for("admin_certificates"))
+
+    finally:
+
+        if cursor:
+            cursor.close()
 
 # =====================================================
 # CERTIFICATE DETAILS

@@ -350,108 +350,99 @@
         <div class="inner-border">
 
 
-            <div class="logo">
-                🔐 CERTICHAIN
-            </div>
 
+<div class="logo">
+    🔐 CERTICHAIN
+</div>
 
-            <h1>
-                CERTIFICATE
-            </h1>
+<h1>
+    CERTIFICATE
+</h1>
 
+<div class="subtitle">
+    OF COMPLETION
+</div>
 
-            <div class="subtitle">
-                OF COMPLETION
-            </div>
+<p class="certify">
+    This is to certify that
+</p>
 
+<div class="student-name">
+    {{ certificate.student_name }}
+</div>
 
-            <p class="certify">
-                This is to certify that
-            </p>
+<p class="certify">
+    has successfully completed
+</p>
 
+<div class="course">
+    {{ certificate.course }}
+</div>
 
-            <div class="student-name">
+<p class="institution">
 
-                {{ certificate.student_name }}
+    Issued by
 
-            </div>
+    <br>
 
+    <strong>
+        MGMS College of Engineering, Nanded
+    </strong>
 
-            <p class="certify">
-                has successfully completed
-            </p>
+</p>
 
+<div class="details">
 
-            <div class="course">
+    <div>
 
-                {{ certificate.course_name }}
+        <p>
+            <strong>Certificate ID:</strong>
+            {{ certificate.certificate_id }}
+        </p>
 
-            </div>
+        <p>
+            <strong>Issue Date:</strong>
+            {{ certificate.issue_date }}
+        </p>
 
+        <p>
+            <strong>Certificate Status:</strong>
 
-            <p class="institution">
+            <span class="status">
+                {{ certificate.status }}
+            </span>
+        </p>
 
-                Issued by
+        <p>
+            <strong>Blockchain:</strong>
 
-                <br>
+            <span class="status">
+                {{ certificate.blockchain_status }}
+            </span>
+        </p>
 
-                <strong>
-                    {{ certificate.institution_name }}
-                </strong>
+    </div>
 
-            </p>
+    <div>
 
+        <p>
+            <strong>Certificate Hash:</strong>
+        </p>
 
-            <div class="details">
+        <p>
+            {{ certificate.certificate_hash }}
+        </p>
 
+    </div>
 
-                <div>
+</div>
 
-                    <p>
-                        <strong>Certificate ID:</strong>
-                        {{ certificate.certificate_id }}
-                    </p>
+<div class="blockchain">
 
+    Blockchain Certificate • CertiChain
 
-                    <p>
-                        <strong>Issue Date:</strong>
-                        {{ certificate.issue_date }}
-                    </p>
+</div>
 
-
-                    <p>
-                        <strong>Status:</strong>
-
-                        <span class="status">
-                            {{ certificate.blockchain_status }}
-                        </span>
-
-                    </p>
-
-                </div>
-
-
-                <div>
-
-                    <p>
-                        <strong>Certificate Hash:</strong>
-                    </p>
-
-                    <p>
-                        {{ certificate.certificate_hash }}
-                    </p>
-
-                </div>
-
-
-            </div>
-
-
-            <div class="blockchain">
-
-                Blockchain Certificate • CertiChain
-
-            </div>
 
 
         </div>
