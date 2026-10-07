@@ -1,0 +1,916 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Students | Blockchain Certificate Verification</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #111827;
+            padding: 25px 15px;
+        }
+
+        .logo {
+            text-align: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 35px;
+        }
+
+        .logo span {
+            color: #3b82f6;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu li {
+            margin-bottom: 8px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 13px 15px;
+            text-decoration: none;
+            color: #d1d5db;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .menu a:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* ================= MAIN ================= */
+
+        .main {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        /* ================= TOP BAR ================= */
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .topbar h1 {
+            font-size: 28px;
+            color: #111827;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .admin-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        /* ================= PAGE HEADER ================= */
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .page-header h2 {
+            font-size: 23px;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* ADD STUDENT BUTTON */
+
+        .add-btn {
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* ================= STATISTICS ================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 27px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        /* ================= STUDENT TABLE ================= */
+
+        .student-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        .table-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-top h3 {
+            font-size: 19px;
+            color: #111827;
+        }
+
+        /* SEARCH */
+
+        .search-box {
+            width: 280px;
+            padding: 10px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-box:focus {
+            border-color: #2563eb;
+        }
+
+        /* FILTER */
+
+        .filter-box {
+            padding: 10px 12px;
+            margin-left: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            background: white;
+            outline: none;
+        }
+
+        /* TABLE */
+
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .student-table th {
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 13px;
+            padding: 14px;
+            text-align: left;
+        }
+
+        .student-table td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        .student-table tr:hover {
+            background: #f9fafb;
+        }
+
+        /* STUDENT NAME */
+
+        .student-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .student-id {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* ================= STATUS ================= */
+
+        .status {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .verified {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .blocked {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* ================= ACTION BUTTONS ================= */
+
+        .actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            text-decoration: none;
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .view-btn {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .view-btn:hover {
+            background: #bfdbfe;
+        }
+
+        .edit-btn {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .edit-btn:hover {
+            background: #fde68a;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .delete-btn:hover {
+            background: #fecaca;
+        }
+
+        /* ================= PAGINATION ================= */
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .pagination-info {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .page-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-buttons button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .page-buttons button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        /* ================= EMPTY STATE ================= */
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 1100px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .student-table {
+                min-width: 900px;
+            }
+
+            .student-container {
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .topbar,
+            .page-header,
+            .table-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filter-box {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            Block<span>Cert</span>
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="{{ url_for('admin_dashboard') }}">
+                    Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('admin_students') }}" class="active">
+                    Students
+                </a>
+            </li>
+
+            <li>
+                <a href="#">
+                    Certificates
+                </a>
+            </li>
+
+            <li>
+                <a href="#">
+                    Verification
+                </a>
+            </li>
+
+            <li>
+                <a href="#">
+                    Blockchain Records
+                </a>
+            </li>
+
+            <li>
+                <a href="#">
+                    Settings
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('logout') }}">
+                    Logout
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+
+    <main class="main">
+
+        <!-- TOP BAR -->
+
+        <div class="topbar">
+
+            <h1>Student Management</h1>
+
+            <div class="admin-profile">
+
+                <div class="admin-icon">
+                    A
+                </div>
+
+                <span>Administrator</span>
+
+            </div>
+
+        </div>
+
+
+        <!-- PAGE HEADER -->
+
+        <div class="page-header">
+
+            <div>
+
+                <h2>Students</h2>
+
+                <p>
+                    Manage registered students and their certificate information.
+                </p>
+
+            </div>
+
+            <!-- ADD STUDENT -->
+
+            <a href="{{ url_for('add_student') }}" class="add-btn">
+                + Add Student
+            </a>
+
+        </div>
+
+
+        <!-- ================= STATISTICS ================= -->
+
+        <div class="stats">
+
+            <div class="stat-card">
+
+                <h3>Total Students</h3>
+
+                <div class="stat-number">
+                    {{ students|length }}
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Verified Students</h3>
+
+                <div class="stat-number">
+                    {{ students|selectattr('status', 'equalto', 'Verified')|list|length }}
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Pending Verification</h3>
+
+                <div class="stat-number">
+                    {{ students|selectattr('status', 'equalto', 'Pending')|list|length }}
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Total Certificates</h3>
+
+                <div class="stat-number">
+                    {{ students|sum(attribute='certificate_count') }}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= STUDENT LIST ================= -->
+
+        <div class="student-container">
+
+            <div class="table-top">
+
+                <h3>Student List</h3>
+
+                <div>
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="search-box"
+                        placeholder="Search student..."
+                    >
+
+                    <select id="statusFilter" class="filter-box">
+
+                        <option value="all">
+                            All Status
+                        </option>
+
+                        <option value="Verified">
+                            Verified
+                        </option>
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="Blocked">
+                            Blocked
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- TABLE -->
+
+            <table class="student-table" id="studentTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Student</th>
+
+                        <th>Email</th>
+
+                        <th>Department</th>
+
+                        <th>Certificates</th>
+
+                        <th>Status</th>
+
+                        <th>Actions</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for student in students %}
+
+                    <tr>
+
+                        <!-- NUMBER -->
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+
+                        <!-- STUDENT -->
+
+                        <td>
+
+                            <div class="student-name">
+                                {{ student.name }}
+                            </div>
+
+                            <div class="student-id">
+                                ID: {{ student.student_id }}
+                            </div>
+
+                        </td>
+
+
+                        <!-- EMAIL -->
+
+                        <td>
+                            {{ student.email }}
+                        </td>
+
+
+                        <!-- DEPARTMENT -->
+
+                        <td>
+                            {{ student.department }}
+                        </td>
+
+
+                        <!-- CERTIFICATE COUNT -->
+
+                        <td>
+                            {{ student.certificate_count }}
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td>
+
+                            {% if student.status == "Verified" %}
+
+                                <span class="status verified">
+                                    Verified
+                                </span>
+
+                            {% elif student.status == "Pending" %}
+
+                                <span class="status pending">
+                                    Pending
+                                </span>
+
+                            {% else %}
+
+                                <span class="status blocked">
+                                    Blocked
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- ACTIONS -->
+
+                        <td>
+
+                            <div class="actions">
+
+                                <!-- STUDENT DETAILS -->
+
+                                <a
+                                    href="{{ url_for('admin_student_details', student_id=student.student_id) }}"
+                                    class="action-btn view-btn"
+                                >
+                                    View
+                                </a>
+
+
+                                <!-- EDIT STUDENT -->
+
+                                <a
+                                    href="{{ url_for('edit_student', student_id=student.student_id) }}"
+                                    class="action-btn edit-btn"
+                                >
+                                    Edit
+                                </a>
+
+
+                                <!-- DELETE STUDENT -->
+
+                                <a
+                                    href="{{ url_for('delete_student', student_id=student.student_id) }}"
+                                    class="action-btn delete-btn"
+                                    onclick="return confirm('Are you sure you want to delete this student?');"
+                                >
+                                    Delete
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+
+                    {% else %}
+
+                    <tr>
+
+                        <td colspan="7">
+
+                            <div class="empty">
+
+                                <h3>No Students Found</h3>
+
+                                <p>
+                                    No students have been registered yet.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+
+            <!-- ================= PAGINATION ================= -->
+
+            <div class="pagination">
+
+                <div class="pagination-info">
+                    Showing students
+                </div>
+
+                <div class="page-buttons">
+
+                    <button>
+                        Previous
+                    </button>
+
+                    <button class="active">
+                        1
+                    </button>
+
+                    <button>
+                        2
+                    </button>
+
+                    <button>
+                        3
+                    </button>
+
+                    <button>
+                        Next
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- ================= SEARCH + FILTER ================= -->
+
+    <script>
+
+        const searchInput =
+            document.getElementById("searchInput");
+
+        const statusFilter =
+            document.getElementById("statusFilter");
+
+        const tableRows =
+            document.querySelectorAll("#studentTable tbody tr");
+
+
+        function filterStudents() {
+
+            const searchValue =
+                searchInput.value.toLowerCase();
+
+            const statusValue =
+                statusFilter.value;
+
+
+            tableRows.forEach(function(row) {
+
+                const rowText =
+                    row.innerText.toLowerCase();
+
+                const rowStatus =
+                    row.querySelector(".status");
+
+
+                let statusMatch = true;
+
+                if (
+                    statusValue !== "all" &&
+                    rowStatus
+                ) {
+
+                    statusMatch =
+                        rowStatus.innerText.trim() === statusValue;
+
+                }
+
+
+                const searchMatch =
+                    rowText.includes(searchValue);
+
+
+                if (searchMatch && statusMatch) {
+
+                    row.style.display = "";
+
+                } else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+        }
+
+
+        searchInput.addEventListener(
+            "keyup",
+            filterStudents
+        );
+
+
+        statusFilter.addEventListener(
+            "change",
+            filterStudents
+        );
+
+    </script>
+
+</body>
+</html>

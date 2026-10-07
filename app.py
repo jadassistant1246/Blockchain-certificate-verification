@@ -215,7 +215,7 @@ def login():
 # STUDENT DASHBOARD
 # =========================================================
 
-@app.route("/student-dashboard")
+@app.route("/student_dashboard")
 def student_dashboard():
 
     # Login check

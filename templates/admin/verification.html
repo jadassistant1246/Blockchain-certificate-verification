@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verification | Blockchain Certificate Verification</title>
+
+    <style>
+
+        /* =========================
+           RESET
+        ========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #111827;
+            padding: 25px 15px;
+        }
+
+        .logo {
+            text-align: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 35px;
+        }
+
+        .logo span {
+            color: #3b82f6;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu li {
+            margin-bottom: 8px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 13px 15px;
+            text-decoration: none;
+            color: #d1d5db;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .menu a:hover {
+            background: #1f2937;
+            color: white;
+        }
+
+        .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+
+        /* =========================
+           TOP BAR
+        ========================= */
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .topbar h1 {
+            font-size: 28px;
+            color: #111827;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .admin-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+
+        /* =========================
+           PAGE HEADER
+        ========================= */
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .page-header h2 {
+            font-size: 23px;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .page-header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           VERIFY CARD
+        ========================= */
+
+        .verify-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+            margin-bottom: 25px;
+        }
+
+        .verify-card h3 {
+            font-size: 19px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .verify-card p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .verify-form {
+            display: flex;
+            gap: 12px;
+        }
+
+        .verify-input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .verify-input:focus {
+            border-color: #2563eb;
+        }
+
+        .verify-btn {
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .verify-btn:hover {
+            background: #1d4ed8;
+        }
+
+
+        /* =========================
+           STATISTICS
+        ========================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 27px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+
+        /* =========================
+           HISTORY CONTAINER
+        ========================= */
+
+        .history-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-header h3 {
+            font-size: 19px;
+            color: #111827;
+        }
+
+
+        /* =========================
+           SEARCH + FILTER
+        ========================= */
+
+        .search-box {
+            width: 260px;
+            padding: 10px 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-box:focus {
+            border-color: #2563eb;
+        }
+
+        .filter-box {
+            padding: 10px 12px;
+            margin-left: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            background: white;
+            outline: none;
+        }
+
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .verification-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .verification-table th {
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 13px;
+            padding: 14px;
+            text-align: left;
+        }
+
+        .verification-table td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        .verification-table tr:hover {
+            background: #f9fafb;
+        }
+
+
+        /* =========================
+           CERTIFICATE ID
+        ========================= */
+
+        .certificate-id {
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .certificate-hash {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+
+        /* =========================
+           VERIFIER
+        ========================= */
+
+        .verifier-name {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .verifier-email {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+
+        /* =========================
+           RESULT STATUS
+        ========================= */
+
+        .status {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .valid {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .invalid {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+
+        /* =========================
+           BLOCKCHAIN STATUS
+        ========================= */
+
+        .blockchain {
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .confirmed {
+            color: #15803d;
+            font-weight: 600;
+        }
+
+
+        /* =========================
+           ACTION
+        ========================= */
+
+        .action-btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 7px 11px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .action-btn:hover {
+            background: #bfdbfe;
+        }
+
+
+        /* =========================
+           PAGINATION
+        ========================= */
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .pagination-info {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .page-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .page-buttons button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .page-buttons button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+
+        /* =========================
+           EMPTY STATE
+        ========================= */
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .history-container {
+                overflow-x: auto;
+            }
+
+            .verification-table {
+                min-width: 1050px;
+            }
+
+        }
+
+
+        @media (max-width: 700px) {
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .topbar,
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .verify-form {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filter-box {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================
+         SIDEBAR
+    ====================================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            Block<span>Cert</span>
+        </div>
+
+
+        <ul class="menu">
+
+            <li>
+                <a href="{{ url_for('admin_dashboard') }}">
+                    Dashboard
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_students') }}">
+                    Students
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_certificates') }}">
+                    Certificates
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('admin_verification') }}"
+                   class="active">
+                    Verification
+                </a>
+            </li>
+
+
+            <li>
+                <a href="#">
+                    Blockchain Records
+                </a>
+            </li>
+
+
+            <li>
+                <a href="#">
+                    Settings
+                </a>
+            </li>
+
+
+            <li>
+                <a href="{{ url_for('logout') }}">
+                    Logout
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+
+
+    <!-- =====================================
+         MAIN CONTENT
+    ====================================== -->
+
+    <main class="main">
+
+
+        <!-- TOP BAR -->
+
+        <div class="topbar">
+
+            <h1>Certificate Verification</h1>
+
+
+            <div class="admin-profile">
+
+                <div class="admin-icon">
+                    A
+                </div>
+
+                <span>Administrator</span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PAGE HEADER -->
+
+        <div class="page-header">
+
+            <h2>Verification</h2>
+
+            <p>
+                Verify certificates and monitor complete verification history.
+            </p>
+
+        </div>
+
+
+
+        <!-- =====================================
+             VERIFY CERTIFICATE
+        ====================================== -->
+
+        <div class="verify-card">
+
+            <h3>Verify Certificate</h3>
+
+            <p>
+                Enter the Certificate ID or Certificate Hash to verify
+                its authenticity using the blockchain record.
+            </p>
+
+
+            <form
+                action="{{ url_for('verify_certificate') }}"
+                method="POST"
+                class="verify-form"
+            >
+
+                <input
+                    type="text"
+                    name="certificate_id"
+                    class="verify-input"
+                    placeholder="Enter Certificate ID or Blockchain Hash"
+                    required
+                >
+
+
+                <button
+                    type="submit"
+                    class="verify-btn"
+                >
+
+                    Verify Certificate
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+
+        <!-- =====================================
+             STATISTICS
+        ====================================== -->
+
+        <div class="stats">
+
+
+            <div class="stat-card">
+
+                <h3>Total Verifications</h3>
+
+                <div class="stat-number">
+                    {{ verifications|length }}
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Valid Certificates</h3>
+
+                <div class="stat-number">
+
+                    {{ verifications
+                       |selectattr('result', 'equalto', 'Valid')
+                       |list
+                       |length }}
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Invalid Certificates</h3>
+
+                <div class="stat-number">
+
+                    {{ verifications
+                       |selectattr('result', 'equalto', 'Invalid')
+                       |list
+                       |length }}
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <h3>Blockchain Confirmed</h3>
+
+                <div class="stat-number">
+
+                    {{ verifications
+                       |selectattr('blockchain_status',
+                                   'equalto',
+                                   'Confirmed')
+                       |list
+                       |length }}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =====================================
+             VERIFICATION HISTORY
+        ====================================== -->
+
+        <div class="history-container">
+
+
+            <div class="history-header">
+
+
+                <h3>
+                    Verification History
+                </h3>
+
+
+                <div>
+
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        class="search-box"
+                        placeholder="Search verification..."
+                    >
+
+
+                    <select
+                        id="resultFilter"
+                        class="filter-box"
+                    >
+
+                        <option value="all">
+                            All Results
+                        </option>
+
+                        <option value="Valid">
+                            Valid
+                        </option>
+
+                        <option value="Invalid">
+                            Invalid
+                        </option>
+
+                    </select>
+
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =====================================
+                 VERIFICATION TABLE
+            ====================================== -->
+
+            <table
+                class="verification-table"
+                id="verificationTable"
+            >
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Certificate</th>
+
+                        <th>Student</th>
+
+                        <th>Verifier</th>
+
+                        <th>Date & Time</th>
+
+                        <th>Result</th>
+
+                        <th>Blockchain</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody>
+
+
+                    {% for verification in verifications %}
+
+
+                    <tr>
+
+
+                        <!-- NUMBER -->
+
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+
+                        <!-- CERTIFICATE -->
+
+                        <td>
+
+                            <div class="certificate-id">
+
+                                {{ verification.certificate_id }}
+
+                            </div>
+
+
+                            <div class="certificate-hash">
+
+                                Hash:
+                                {{ verification.certificate_hash[:18] }}...
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- STUDENT -->
+
+                        <td>
+
+                            <div class="verifier-name">
+
+                                {{ verification.student_name }}
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- VERIFIER -->
+
+                        <td>
+
+                            <div class="verifier-name">
+
+                                {{ verification.verifier_name }}
+
+                            </div>
+
+
+                            <div class="verifier-email">
+
+                                {{ verification.verifier_email }}
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- DATE -->
+
+                        <td>
+
+                            {{ verification.verified_at }}
+
+                        </td>
+
+
+                        <!-- RESULT -->
+
+                        <td>
+
+
+                            {% if verification.result == "Valid" %}
+
+                                <span class="status valid">
+                                    Valid
+                                </span>
+
+
+                            {% elif verification.result == "Invalid" %}
+
+                                <span class="status invalid">
+                                    Invalid
+                                </span>
+
+
+                            {% else %}
+
+                                <span class="status pending">
+                                    Pending
+                                </span>
+
+                            {% endif %}
+
+
+                        </td>
+
+
+                        <!-- BLOCKCHAIN -->
+
+                        <td>
+
+                            {% if verification.blockchain_status == "Confirmed" %}
+
+                                <span class="blockchain confirmed">
+                                    ✓ Confirmed
+                                </span>
+
+                            {% else %}
+
+                                <span class="blockchain">
+                                    Pending
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- DETAILS -->
+
+                        <td>
+
+                            <a
+                                href="{{ url_for(
+                                    'verification_details',
+                                    verification_id=verification.verification_id
+                                ) }}"
+                                class="action-btn"
+                            >
+
+                                View Details
+
+                            </a>
+
+                        </td>
+
+
+                    </tr>
+
+
+                    {% else %}
+
+
+                    <!-- EMPTY -->
+
+                    <tr>
+
+                        <td colspan="8">
+
+                            <div class="empty">
+
+                                <h3>
+                                    No Verification History
+                                </h3>
+
+                                <p>
+                                    Certificate verification records
+                                    will appear here.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+
+                    {% endfor %}
+
+
+                </tbody>
+
+
+            </table>
+
+
+
+            <!-- =====================================
+                 PAGINATION
+            ====================================== -->
+
+            <div class="pagination">
+
+
+                <div class="pagination-info">
+
+                    Showing verification records
+
+                </div>
+
+
+                <div class="page-buttons">
+
+                    <button>
+                        Previous
+                    </button>
+
+                    <button class="active">
+                        1
+                    </button>
+
+                    <button>
+                        2
+                    </button>
+
+                    <button>
+                        3
+                    </button>
+
+                    <button>
+                        Next
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+
+    <!-- =====================================
+         SEARCH + FILTER
+    ====================================== -->
+
+    <script>
+
+
+        const searchInput =
+            document.getElementById("searchInput");
+
+
+        const resultFilter =
+            document.getElementById("resultFilter");
+
+
+        const rows =
+            document.querySelectorAll(
+                "#verificationTable tbody tr"
+            );
+
+
+        function filterVerification() {
+
+
+            const searchValue =
+                searchInput.value.toLowerCase();
+
+
+            const resultValue =
+                resultFilter.value.toLowerCase();
+
+
+            rows.forEach(function(row) {
+
+
+                const rowText =
+                    row.innerText.toLowerCase();
+
+
+                let resultMatch = true;
+
+
+                if (
+                    resultValue !== "all" &&
+                    !rowText.includes(resultValue)
+                ) {
+
+                    resultMatch = false;
+
+                }
+
+
+                const searchMatch =
+                    rowText.includes(searchValue);
+
+
+                if (
+                    searchMatch &&
+                    resultMatch
+                ) {
+
+                    row.style.display = "";
+
+                }
+
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+        }
+
+
+        searchInput.addEventListener(
+            "keyup",
+            filterVerification
+        );
+
+
+        resultFilter.addEventListener(
+            "change",
+            filterVerification
+        );
+
+
+    </script>
+
+
+</body>
+
+</html>
