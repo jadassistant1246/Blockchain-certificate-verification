@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Login | Certificate Verification</title>
+    <title>Register | Certificate Verification</title>
 
     <style>
         * {
@@ -23,8 +23,8 @@
             background: linear-gradient(135deg, #0f172a, #1e3a8a);
         }
 
-        .login-container {
-            width: 380px;
+        .register-container {
+            width: 400px;
             background: white;
             padding: 35px;
             border-radius: 15px;
@@ -47,11 +47,11 @@
             text-align: center;
             color: #64748b;
             font-size: 14px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 17px;
         }
 
         label {
@@ -61,7 +61,8 @@
             font-weight: bold;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #cbd5e1;
@@ -70,11 +71,12 @@
             outline: none;
         }
 
-        input:focus {
+        input:focus,
+        select:focus {
             border-color: #2563eb;
         }
 
-        .login-btn {
+        .register-btn {
             width: 100%;
             padding: 13px;
             border: none;
@@ -84,26 +86,27 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            margin-top: 5px;
         }
 
-        .login-btn:hover {
+        .register-btn:hover {
             background: #1d4ed8;
         }
 
-        .register-link {
+        .login-link {
             text-align: center;
             margin-top: 20px;
             color: #64748b;
             font-size: 14px;
         }
 
-        .register-link a {
+        .login-link a {
             color: #2563eb;
             text-decoration: none;
             font-weight: bold;
         }
 
-        .register-link a:hover {
+        .login-link a:hover {
             text-decoration: underline;
         }
 
@@ -124,43 +127,16 @@
             margin-bottom: 15px;
             text-align: center;
         }
-
-        .danger {
-            background: #fee2e2;
-            color: #b91c1c;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .warning {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .info {
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
     </style>
 </head>
 
 <body>
 
-    <div class="login-container">
+    <div class="register-container">
 
-        <div class="logo">🔐</div>
+        <div class="logo">🎓</div>
 
-        <h1>Welcome Back</h1>
+        <h1>Create Account</h1>
 
         <p class="subtitle">
             Blockchain Certificate Verification
@@ -177,61 +153,88 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Login Form -->
-        <form action="{{ url_for('login') }}" method="POST" autocomplete="off">
+
+        <!-- Registration Form -->
+        <form action="/register" method="POST" autocomplete="off">
+
+            <!-- Name -->
+            <div class="form-group">
+                <label for="name">Full Name</label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    required
+                >
+            </div>
+
 
             <!-- Email -->
             <div class="form-group">
-
-                <label for="email">
-                    Email
-                </label>
+                <label for="email">Email</label>
 
                 <input
                     type="email"
                     id="email"
                     name="email"
-                    autocomplete="off"
                     placeholder="Enter your email"
                     required
                 >
-
             </div>
+
 
             <!-- Password -->
             <div class="form-group">
-
-                <label for="password">
-                    Password
-                </label>
+                <label for="password">Password</label>
 
                 <input
                     type="password"
                     id="password"
                     name="password"
-                    autocomplete="off"
-                    placeholder="Enter your password"
+                    placeholder="Create a password"
                     required
                 >
-
             </div>
 
-            <!-- Login Button -->
-            <button type="submit" class="login-btn">
-                Login
+
+            <!-- Role -->
+            <div class="form-group">
+                <label for="role">Register As</label>
+
+                <select id="role" name="role" required>
+
+                    <option value="">Select Role</option>
+
+                    <option value="student">
+                        Student
+                    </option>
+
+                    <option value="admin">
+                        Admin / Institution
+                    </option>
+
+                    <option value="student">
+                        Verifier
+                    </option>
+
+                </select>
+            </div>
+
+
+            <!-- Button -->
+            <button type="submit" class="register-btn">
+                Create Account
             </button>
 
         </form>
 
-        <!-- Register Link -->
-        <div class="register-link">
 
-            Don't have an account?
-
-            <a href="{{ url_for('register') }}">
-                Register
-            </a>
-
+        <!-- Login Link -->
+        <div class="login-link">
+            Already have an account?
+            <a href="/login">Login</a>
         </div>
 
     </div>

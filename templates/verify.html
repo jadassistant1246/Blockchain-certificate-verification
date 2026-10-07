@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verify Certificate - CertiChain</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f6fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+
+        .navbar {
+            background: linear-gradient(135deg, #8b4513, #d97706);
+
+            color: white;
+
+            padding: 18px 50px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .home-btn {
+            background: white;
+
+            color: #8b4513;
+
+            padding: 10px 20px;
+
+            border-radius: 6px;
+
+            text-decoration: none;
+
+            font-weight: bold;
+        }
+
+        .home-btn:hover {
+            background: #f1f1f1;
+        }
+
+
+        /* Main Container */
+
+        .container {
+            width: 90%;
+
+            max-width: 750px;
+
+            margin: 60px auto;
+        }
+
+
+        /* Heading */
+
+        .heading {
+            text-align: center;
+
+            margin-bottom: 35px;
+        }
+
+        .heading h1 {
+            font-size: 34px;
+
+            color: #333;
+
+            margin-bottom: 10px;
+        }
+
+        .heading p {
+            color: #666;
+
+            font-size: 16px;
+        }
+
+
+        /* Verification Box */
+
+        .verify-box {
+            background: white;
+
+            padding: 35px;
+
+            border-radius: 12px;
+
+            border: 1px solid #ddd;
+        }
+
+        .verify-box h2 {
+            color: #8b4513;
+
+            margin-bottom: 10px;
+        }
+
+        .verify-box p {
+            color: #666;
+
+            margin-bottom: 25px;
+        }
+
+
+        /* Input */
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+
+            font-weight: bold;
+
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+
+            padding: 13px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 6px;
+
+            font-size: 16px;
+
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: #8b4513;
+        }
+
+
+        /* Verify Button */
+
+        .verify-btn {
+            width: 100%;
+
+            padding: 13px;
+
+            border: none;
+
+            border-radius: 6px;
+
+            background:  #d97706;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .verify-btn:hover {
+            background:#b65f05;
+        }
+
+
+        /* Result */
+
+        .result {
+            margin-top: 30px;
+
+            padding: 25px;
+
+            border-radius: 10px;
+
+            border: 1px solid #ddd;
+
+            background: #fafafa;
+        }
+
+        .result h2 {
+            margin-bottom: 20px;
+
+            color: #8b4513;
+        }
+
+        .result-row {
+            display: flex;
+
+            justify-content: space-between;
+
+            padding: 10px 0;
+
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: bold;
+        }
+
+        .status {
+            font-weight: bold;
+
+            color: #198754;
+        }
+
+
+        /* Footer */
+
+        .footer {
+            text-align: center;
+
+            margin-top: 50px;
+
+            padding: 20px;
+
+            color: #777;
+
+            font-size: 14px;
+        }
+
+
+        /* Responsive */
+
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .container {
+                width: 95%;
+
+                margin: 35px auto;
+            }
+
+            .verify-box {
+                padding: 25px;
+            }
+
+                    .heading h1 {
+                        font-size: 28px;
+                    }
+                
+                }
+              /* Upload Certificate */
+            
+               .upload-section {
+                margin-top: 35px;
+                padding-top: 25px;
+                border-top: 1px solid #ddd;
+                }
+            
+                .upload-section h2 {
+                color: #8b4513;
+                margin-bottom: 10px;
+                }
+            
+        .upload-section p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .divider {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .upload-group {
+            margin-bottom: 20px;
+        }
+
+        .upload-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .upload-group input[type="file"] {
+            width: 100%;
+            padding: 12px;
+        
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        
+            background: #f8f8f8;
+            font-size: 15px;
+        }
+
+        .upload-btn {
+            width: 100%;
+        
+            padding: 13px;
+        
+            border: none;
+            border-radius: 6px;
+        
+            background: #d97706;
+            color: white;
+        
+            font-size: 16px;
+            font-weight: bold;
+        
+            cursor: pointer;
+        }
+
+        .upload-btn:hover {
+            background: #b65f05;
+        }
+    </style>
+
+    </head>
+
+<body>
+
+
+    <!-- Navbar -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🔐 CertiChain
+        </div>
+
+        <a href="{{ url_for('home') }}" class="home-btn">
+            Home
+        </a>
+
+    </nav>
+
+
+    <!-- Main -->
+
+    <div class="container">
+
+
+        <!-- Heading -->
+
+        <div class="heading">
+
+            <h1>Verify Certificate</h1>
+
+            <p>
+                Verify the authenticity of a certificate using its Certificate ID or uploading PDF.
+            </p>
+
+        </div>
+
+
+        <!-- Verification Box -->
+
+        <div class="verify-box">
+
+            <h2>Certificate Verification</h2>
+
+            <p>
+                Enter the Certificate ID to check its blockchain verification status.
+            </p>
+
+
+            <!-- Verification Form -->
+
+            <form method="POST" action="{{ url_for('verify_certificate') }}">
+
+                <div class="input-group">
+
+                    <label for="certificate_id">
+                        Certificate ID
+                    </label>
+
+                    <input
+                        type="text"
+                        id="certificate_id"
+                        name="certificate_id"
+                        placeholder="Enter Certificate ID"
+                        required
+                    >
+
+                </div>
+
+
+                <button type="submit" class="verify-btn">
+                    Verify Certificate
+                </button>
+
+            </form>
+
+            <!-- Upload Certificate Verification -->
+
+<div class="upload-section">
+
+    <div class="divider">
+        <span>OR</span>
+    </div>
+
+    <h2>Verify by Uploading Certificate</h2>
+
+    <p>
+        Upload your certificate PDF to verify its authenticity.
+    </p>
+
+    <form method="POST"
+          action="{{ url_for('verify_certificate') }}"
+          enctype="multipart/form-data">
+
+        <div class="upload-group">
+
+            <label for="certificate_file">
+                Upload Certificate
+            </label>
+
+            <input
+                type="file"
+                id="certificate_file"
+                name="certificate_file"
+                accept=".pdf"
+                required
+            >
+
+        </div>
+
+        <button type="submit" class="upload-btn">
+            Upload & Verify
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+
+</html>

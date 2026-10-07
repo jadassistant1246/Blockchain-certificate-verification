@@ -1,16 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>BlockCert | Blockchain Certificate Verification</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 
     <style>
+
         * {
             margin: 0;
             padding: 0;
@@ -125,10 +139,20 @@
         }
 
         /* HERO */
+
         .hero {
             background:
-                radial-gradient(circle at 80% 20%, rgba(37,99,235,.10), transparent 30%),
-                linear-gradient(135deg, #f8fbff, #eef5ff);
+                radial-gradient(
+                    circle at 80% 20%,
+                    rgba(37,99,235,.10),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #f8fbff,
+                    #eef5ff
+                );
+
             padding: 90px 0 85px;
             overflow: hidden;
         }
@@ -243,6 +267,7 @@
         }
 
         /* HERO CARD */
+
         .hero-visual {
             position: relative;
             min-height: 440px;
@@ -383,6 +408,7 @@
         }
 
         /* COMMON SECTIONS */
+
         .about-section,
         .features-section,
         .steps-section {
@@ -424,6 +450,7 @@
         }
 
         /* ABOUT */
+
         .about-section {
             background: #ffffff;
         }
@@ -474,6 +501,7 @@
         }
 
         /* FEATURES */
+
         .features-section {
             background: #f8fafc;
         }
@@ -513,6 +541,7 @@
         }
 
         /* STEPS */
+
         .steps-section {
             background: #ffffff;
         }
@@ -555,6 +584,7 @@
         }
 
         /* CTA */
+
         .cta-section {
             padding: 70px 0;
             background: #172033;
@@ -605,6 +635,7 @@
         }
 
         /* FOOTER */
+
         footer {
             background: #101828;
             color: #ffffff;
@@ -661,7 +692,9 @@
         }
 
         /* RESPONSIVE */
+
         @media (max-width: 950px) {
+
             .nav-menu {
                 display: none;
             }
@@ -710,6 +743,7 @@
         }
 
         @media (max-width: 600px) {
+
             .nav-container {
                 min-height: 68px;
             }
@@ -791,427 +825,733 @@
                 grid-column: auto;
             }
         }
+
     </style>
+
 </head>
 
 <body>
 
     <!-- NAVBAR -->
+
     <header class="navbar">
+
         <div class="nav-container">
 
             <a href="{{ url_for('home') }}" class="logo">
+
                 <div class="logo-icon">
                     <i class="fas fa-link"></i>
                 </div>
+
                 <div class="logo-text">
                     <span>Block</span>Cert
                 </div>
+
             </a>
 
             <nav class="nav-menu">
+
                 <a href="#home" class="active">Home</a>
+
                 <a href="#about">About</a>
+
                 <a href="#features">Features</a>
+
                 <a href="#how-it-works">How It Works</a>
+
                 <a href="#contact">Contact</a>
+
             </nav>
 
-            <a href="{{ url_for('admin_login') }}" class="admin-btn">
+            <!-- IMPORTANT:
+                 There is only ONE login route.
+                 After login, Flask checks the user's role.
+            -->
+
+            <a href="{{ url_for('login') }}" class="admin-btn">
+
                 <i class="fas fa-user-shield"></i>
+
                 Admin Portal
+
             </a>
 
         </div>
+
     </header>
 
+
     <!-- HERO -->
+
     <section class="hero" id="home">
+
         <div class="hero-container">
 
             <div class="hero-content">
+
                 <div class="hero-badge">
+
                     <i class="fas fa-shield-halved"></i>
+
                     Secure • Transparent • Blockchain Powered
+
                 </div>
 
                 <h1>
+
                     Verify Certificates
+
                     <span>with Blockchain</span>
+
                 </h1>
 
                 <p>
+
                     A secure and transparent certificate verification
                     system that uses blockchain technology to help
                     prevent fake and tampered certificates.
+
                 </p>
 
                 <div class="hero-buttons">
-                   <a href="{{ url_for('student_login') }}" class="primary-btn">
-                   <i class="fas fa-right-to-bracket"></i>
-                   Student Login
+
+                    <a href="{{ url_for('login') }}" class="primary-btn">
+
+                        <i class="fas fa-right-to-bracket"></i>
+
+                        Student Login
+
                     </a>
 
                     <a href="#about" class="secondary-btn">
+
                         Learn More
+
                         <i class="fas fa-arrow-right"></i>
+
                     </a>
+
                 </div>
 
                 <div class="hero-stats">
+
                     <div class="stat-item">
+
                         <i class="fas fa-certificate"></i>
+
                         <div>
+
                             <strong>Secure</strong>
+
                             <span>Certificates</span>
+
                         </div>
+
                     </div>
 
                     <div class="stat-item">
+
                         <i class="fas fa-link"></i>
+
                         <div>
+
                             <strong>Blockchain</strong>
+
                             <span>Records</span>
+
                         </div>
+
                     </div>
 
                     <div class="stat-item">
+
                         <i class="fas fa-check-circle"></i>
+
                         <div>
+
                             <strong>Easy</strong>
+
                             <span>Verification</span>
+
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
+
 
             <div class="hero-visual">
 
                 <div class="blockchain-card">
+
                     <div class="card-top">
+
                         <div class="certificate-icon">
+
                             <i class="fas fa-certificate"></i>
+
                         </div>
 
                         <div>
-                            <span class="verified-label">VERIFIED</span>
+
+                            <span class="verified-label">
+                                VERIFIED
+                            </span>
+
                             <h3>Digital Certificate</h3>
+
                         </div>
+
                     </div>
 
                     <div class="certificate-line"></div>
 
                     <div class="certificate-info">
+
                         <div>
+
                             <span>Certificate ID</span>
+
                             <strong>BC-2026-001245</strong>
+
                         </div>
 
                         <div>
+
                             <span>Student</span>
+
                             <strong>Verified Student</strong>
+
                         </div>
 
                         <div>
+
                             <span>Issue Date</span>
+
                             <strong>25 September 2026</strong>
+
                         </div>
+
                     </div>
 
                     <div class="hash-box">
+
                         <div class="hash-icon">
+
                             <i class="fas fa-fingerprint"></i>
+
                         </div>
 
                         <div>
+
                             <span>Blockchain Hash</span>
+
                             <strong>8f72a9c4...d31b</strong>
+
                         </div>
+
                     </div>
 
                     <div class="verified-bottom">
+
                         <i class="fas fa-circle-check"></i>
+
                         Certificate authenticity confirmed
+
                     </div>
+
                 </div>
+
 
                 <div class="floating-block block-one">
+
                     <i class="fas fa-cube"></i>
+
                     <span>Block #1024</span>
+
                 </div>
 
+
                 <div class="floating-block block-two">
+
                     <i class="fas fa-shield-halved"></i>
+
                     <span>Secure Record</span>
+
                 </div>
 
             </div>
+
         </div>
+
     </section>
 
+
     <!-- ABOUT -->
+
     <section class="about-section" id="about">
+
         <div class="section-container">
 
             <div class="section-heading">
+
                 <span>ABOUT THE SYSTEM</span>
+
                 <h2>
+
                     Protecting the authenticity of
                     <strong>digital certificates</strong>
+
                 </h2>
+
                 <p>
+
                     Our Blockchain Certificate Verification System provides
                     a reliable way to issue, store and verify academic
                     certificates while reducing the risk of document forgery
                     and unauthorized modification.
+
                 </p>
+
             </div>
 
             <div class="about-grid">
 
                 <div class="about-card">
+
                     <div class="about-icon">
+
                         <i class="fas fa-lock"></i>
+
                     </div>
+
                     <h3>Secure</h3>
+
                     <p>
+
                         Certificate information is protected using secure
                         digital records and cryptographic hashes.
+
                     </p>
+
                 </div>
 
+
                 <div class="about-card">
+
                     <div class="about-icon">
+
                         <i class="fas fa-network-wired"></i>
+
                     </div>
+
                     <h3>Decentralized</h3>
+
                     <p>
+
                         Blockchain technology provides a distributed record
                         that makes unauthorized modification difficult.
+
                     </p>
+
                 </div>
 
+
                 <div class="about-card">
+
                     <div class="about-icon">
+
                         <i class="fas fa-magnifying-glass"></i>
+
                     </div>
+
                     <h3>Easy Verification</h3>
+
                     <p>
+
                         Certificates can be checked using their certificate
                         ID or blockchain hash.
+
                     </p>
+
                 </div>
 
             </div>
+
         </div>
+
     </section>
 
+
     <!-- FEATURES -->
+
     <section class="features-section" id="features">
+
         <div class="section-container">
 
             <div class="section-heading">
+
                 <span>KEY FEATURES</span>
+
                 <h2>
+
                     Everything needed for
                     <strong>certificate verification</strong>
+
                 </h2>
+
             </div>
 
             <div class="features-grid">
 
                 <div class="feature-card">
+
                     <div class="feature-number">01</div>
+
                     <i class="fas fa-file-circle-check"></i>
+
                     <h3>Digital Certificates</h3>
+
                     <p>
+
                         Store certificate information digitally with unique
                         certificate identifiers.
+
                     </p>
+
                 </div>
 
+
                 <div class="feature-card">
+
                     <div class="feature-number">02</div>
+
                     <i class="fas fa-fingerprint"></i>
+
                     <h3>Certificate Hash</h3>
+
                     <p>
+
                         Generate and maintain a unique cryptographic hash
                         for certificate verification.
+
                     </p>
+
                 </div>
 
+
                 <div class="feature-card">
+
                     <div class="feature-number">03</div>
+
                     <i class="fas fa-cubes"></i>
+
                     <h3>Blockchain Records</h3>
+
                     <p>
+
                         Maintain blockchain records containing certificate
                         hashes and transaction information.
+
                     </p>
+
                 </div>
 
+
                 <div class="feature-card">
+
                     <div class="feature-number">04</div>
+
                     <i class="fas fa-user-shield"></i>
+
                     <h3>Admin Management</h3>
+
                     <p>
+
                         Administrators can manage students, certificates
                         and verification records.
+
                     </p>
+
                 </div>
 
+
                 <div class="feature-card">
+
                     <div class="feature-number">05</div>
+
                     <i class="fas fa-clock-rotate-left"></i>
+
                     <h3>Verification History</h3>
+
                     <p>
+
                         Keep records of certificate verification activities
                         for future reference.
+
                     </p>
+
                 </div>
 
+
                 <div class="feature-card">
+
                     <div class="feature-number">06</div>
+
                     <i class="fas fa-ban"></i>
+
                     <h3>Certificate Revocation</h3>
+
                     <p>
+
                         Administrators can revoke certificates and record
-                        the reason for revocation.
+                        their current status.
+
                     </p>
+
                 </div>
 
             </div>
+
         </div>
+
     </section>
 
+
     <!-- HOW IT WORKS -->
+
     <section class="steps-section" id="how-it-works">
+
         <div class="section-container">
 
             <div class="section-heading">
+
                 <span>HOW IT WORKS</span>
+
                 <h2>
+
                     Simple certificate
                     <strong>verification process</strong>
+
                 </h2>
+
             </div>
 
             <div class="steps">
 
                 <div class="step">
+
                     <div class="step-number">01</div>
+
                     <div class="step-icon">
+
                         <i class="fas fa-user-plus"></i>
+
                     </div>
+
                     <h3>Register Student</h3>
+
                     <p>
+
                         Admin adds student information to the system.
+
                     </p>
+
                 </div>
 
+
                 <div class="step">
+
                     <div class="step-number">02</div>
+
                     <div class="step-icon">
+
                         <i class="fas fa-file-circle-plus"></i>
+
                     </div>
+
                     <h3>Issue Certificate</h3>
+
                     <p>
+
                         Admin issues a digital certificate with a unique hash.
+
                     </p>
+
                 </div>
 
+
                 <div class="step">
+
                     <div class="step-number">03</div>
+
                     <div class="step-icon">
+
                         <i class="fas fa-cubes"></i>
+
                     </div>
+
                     <h3>Store Record</h3>
+
                     <p>
+
                         Certificate information and hash are associated
                         with a blockchain record.
+
                     </p>
+
                 </div>
 
+
                 <div class="step">
+
                     <div class="step-number">04</div>
+
                     <div class="step-icon">
+
                         <i class="fas fa-check-double"></i>
+
                     </div>
+
                     <h3>Verify</h3>
+
                     <p>
+
                         The certificate can be checked for authenticity
                         and current status.
+
                     </p>
+
                 </div>
 
             </div>
+
         </div>
+
     </section>
 
+
     <!-- ADMIN CTA -->
+
     <section class="cta-section">
+
         <div class="cta-container">
 
             <div>
+
                 <span>ADMINISTRATION PORTAL</span>
+
                 <h2>Manage certificates securely</h2>
+
                 <p>
+
                     Access the administrator dashboard to manage students,
                     certificates, verification history and blockchain records.
+
                 </p>
+
             </div>
 
-            <a href="{{ url_for('admin_login') }}" class="cta-button">
+            <a href="{{ url_for('login') }}" class="cta-button">
+
                 Open Admin Portal
+
                 <i class="fas fa-arrow-right"></i>
+
             </a>
 
         </div>
+
     </section>
 
+
     <!-- FOOTER -->
+
     <footer id="contact">
+
         <div class="footer-container">
 
             <div class="footer-brand">
+
                 <a href="{{ url_for('home') }}" class="logo">
+
                     <div class="logo-icon">
+
                         <i class="fas fa-link"></i>
+
                     </div>
+
                     <div class="logo-text">
+
                         <span>Block</span>Cert
+
                     </div>
+
                 </a>
 
                 <p>
+
                     A blockchain-powered certificate verification system
                     designed to improve the security, transparency and
                     authenticity of digital certificates.
+
                 </p>
+
             </div>
 
+
             <div class="footer-links">
+
                 <h4>Quick Links</h4>
+
                 <a href="#home">Home</a>
+
                 <a href="#about">About</a>
+
                 <a href="#features">Features</a>
+
                 <a href="#how-it-works">How It Works</a>
+
             </div>
 
+
             <div class="footer-links">
+
                 <h4>Portal</h4>
-                <a href="{{ url_for('admin_login') }}">Admin Login</a>
-                <a href="{{ url_for('admin_register') }}">Admin Registration</a>
+
+                <a href="{{ url_for('login') }}">
+                    Login
+                </a>
+
+                <a href="{{ url_for('register') }}">
+                    Student Registration
+                </a>
+
+                <a href="{{ url_for('verify_certificate') }}">
+                    Verify Certificate
+                </a>
+
             </div>
 
         </div>
+
 
         <div class="footer-bottom">
+
             <p>
-                © 2026 BlockCert. Blockchain Certificate Verification System.
+
+                © 2026 BlockCert.
+                Blockchain Certificate Verification System.
+
             </p>
+
         </div>
+
     </footer>
 
 </body>
+
 </html>

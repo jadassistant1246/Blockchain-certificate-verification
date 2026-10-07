@@ -1,74 +1,63 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from blockchain import Blockchain
-from web3 import Web3
-import json
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    flash
+)
 
-from datetime import datetime
-import hashlib
-import uuid
-
-blockchain = Blockchain()
 import mysql.connector
 from mysql.connector import Error
 
-from functools import wraps
-
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
 from web3 import Web3
-import json
 
-GANACHE_URL = "http://127.0.0.1:7545"
+import re
+import io
 
-web3 = Web3(
-    Web3.HTTPProvider(GANACHE_URL)
-)
 
-print("Blockchain connected:", web3.is_connected())
+# Optional PDF / QR libraries
+try:
+    import fitz
+except ImportError:
+    fitz = None
 
-with open("blockchain/contract_abi.json", "r") as file:
-    CONTRACT_ABI = json.load(file)
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 
-CONTRACT_ADDRESS = "0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8"
-contract = web3.eth.contract(
-    address=CONTRACT_ADDRESS,
-    abi=CONTRACT_ABI
-)
-# =====================================================
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
+
+# =========================================================
 # FLASK APPLICATION
-# =====================================================
+# =========================================================
 
 app = Flask(__name__)
 
-app.secret_key = "blockcert_secret_key_change_this"
+app.secret_key = "certificate_verification_secret"
 
 
-# =====================================================
-# MYSQL DATABASE CONFIGURATION
-# =====================================================
-
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "Jadhav@1234",
-    "database": "blockchain_certificate"
-}
-
-
-# =====================================================
-# DATABASE CONNECTION
-# =====================================================
+# =========================================================
+# MYSQL DATABASE
+# =========================================================
 
 def get_db_connection():
 
     try:
 
         connection = mysql.connector.connect(
-            host=DB_CONFIG["host"],
-            user=DB_CONFIG["user"],
-            password=DB_CONFIG["password"],
-            database=DB_CONFIG["database"]
+            host="127.0.0.1",
+            user="root",
+            password="Rudrayani@123",
+            database="certificate_db"
         )
 
         return connection
@@ -79,732 +68,542 @@ def get_db_connection():
 
         return None
 
-@app.route('/test-blockchain')
-def test_blockchain():
 
-    try:
+# =========================================================
+# BLOCKCHAIN CONFIGURATION
+# =========================================================
 
-        # Ganache account
-        blockchain_account = web3.eth.accounts[0]
+GANACHE_URL = "http://127.0.0.1:7545"
 
-        # Dummy certificate information
-        certificate_id = "TEST001"
-        certificate_hash = "abc123dummyhash456"
+CONTRACT_ADDRESS = "0x460deEaE67225f91642f2626636206Cc5259F649"
 
-        # Send certificate hash to blockchain
-        transaction = contract.functions.issueCertificate(
-            certificate_id,
-            certificate_hash
-        ).transact({
-            "from": blockchain_account
-        })
 
-        # Wait for transaction confirmation
-        receipt = web3.eth.wait_for_transaction_receipt(
-            transaction
-        )
+# Connect to Ganache
+w3 = Web3(
+    Web3.HTTPProvider(GANACHE_URL)
+)
 
-        return f"""
-        <h2>Blockchain Test Successful</h2>
 
-        <p><b>Certificate ID:</b> {certificate_id}</p>
+# =========================================================
+# SMART CONTRACT ABI
+# =========================================================
 
-        <p><b>Certificate Hash:</b> {certificate_hash}</p>
+CONTRACT_ABI = [
 
-        <p><b>Transaction Hash:</b> {receipt.transactionHash.hex()}</p>
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "issuer",
+                "type": "address"
+            }
+        ],
+        "name": "authorizeIssuer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
 
-        <p><b>Block Number:</b> {receipt.blockNumber}</p>
-        """
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "issuer",
+                "type": "address"
+            }
+        ],
+        "name": "removeIssuer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
 
-    except Exception as e:
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "certificateId",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "studentName",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "courseName",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "institutionName",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "certificateHash",
+                "type": "string"
+            }
+        ],
+        "name": "issueCertificate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
 
-        return f"""
-        <h2>Blockchain Test Failed</h2>
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "certificateId",
+                "type": "string"
+            }
+        ],
+        "name": "revokeCertificate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
 
-        <p>{str(e)}</p>
-        """
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "certificateId",
+                "type": "string"
+            }
+        ],
+        "name": "certificateExists",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
 
-@app.route('/test-blockchain-verify')
-def test_blockchain_verify():
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "certificateId",
+                "type": "string"
+            }
+        ],
+        "name": "verifyCertificate",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "exists",
+                "type": "bool"
+            },
+            {
+                "internalType": "bool",
+                "name": "valid",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
 
-    try:
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "certificateId",
+                "type": "string"
+            }
+        ],
+        "name": "getCertificate",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
 
-        certificate_id = "TEST001"
+]
 
-        certificate_hash, exists = contract.functions.verifyCertificate(
-            certificate_id
-        ).call()
 
-        return f"""
-        <h2>Blockchain Verification Test</h2>
+# Create contract object
+contract = w3.eth.contract(
+    address=Web3.to_checksum_address(CONTRACT_ADDRESS),
+    abi=CONTRACT_ABI
+)
 
-        <p><b>Certificate ID:</b> {certificate_id}</p>
 
-        <p><b>Hash from Blockchain:</b> {certificate_hash}</p>
-
-        <p><b>Certificate Exists:</b> {exists}</p>
-        """
-
-    except Exception as e:
-
-        return f"""
-        <h2>Blockchain Verification Failed</h2>
-
-        <p>{str(e)}</p>
-        """
-# =====================================================
-# ADMIN LOGIN REQUIRED
-# =====================================================
+# =========================================================
+# ADMIN REQUIRED
+# =========================================================
 
 def admin_required(function):
 
-    @wraps(function)
     def wrapper(*args, **kwargs):
 
-        if "admin_id" not in session:
+        if "user_id" not in session:
+            return redirect(url_for("login"))
 
-            return redirect(url_for("admin_login"))
+        if session.get("role") != "admin":
+            flash("Admin access required.", "error")
+            return redirect(url_for("login"))
 
         return function(*args, **kwargs)
+
+    wrapper.__name__ = function.__name__
 
     return wrapper
 
 
+# =========================================================
+# HOME
+# =========================================================
+
 @app.route("/")
 def home():
+
     return render_template("index.html")
 
-#student login 
-@app.route('/student/login', methods=['GET', 'POST'])
-def student_login():
 
-    if request.method == 'POST':
+# =========================================================
+# REGISTER
+# =========================================================
 
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        if not email or not password:
-            flash("Please enter email and password.", "danger")
-            return redirect(url_for('student_login'))
-
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-
-        cursor.execute(
-            """
-            SELECT *
-            FROM students
-            WHERE email = %s
-            """,
-            (email,)
-        )
-
-        student = cursor.fetchone()
-
-        cursor.close()
-        connection.close()
-
-        # Check login credentials
-        if student and check_password_hash(
-            student["password"],
-            password
-        ):
-
-            session.clear()
-
-            session["student_id"] = student["student_id"]
-            session["role"] = "student"
-
-            return redirect(
-                url_for("student_dashboard")
-            )
-
-        flash("Invalid email or password.", "danger")
-
-        return redirect(url_for('student_login'))
-
-    return render_template('student/login.html')
-
-
-# student registration
-
-@app.route('/student/register', methods=['GET', 'POST'])
-def student_register():
-
-    if request.method == 'POST':
-
-        student_name = request.form.get('student_name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        department = request.form.get('department')
-        course = request.form.get('course')
-        enrollment_no = request.form.get('enrollment_no')
-        admission_year = request.form.get('admission_year')
-        password = request.form.get('password')
-
-        # Check required fields
-        if not student_name or not email or not password:
-            flash("Please fill all required fields.", "danger")
-            return redirect(url_for('student_register'))
-
-        # Database connection
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-
-        # Check whether email already exists
-        cursor.execute(
-            "SELECT student_id FROM students WHERE email = %s",
-            (email,)
-        )
-
-        existing_student = cursor.fetchone()
-
-        if existing_student:
-            cursor.close()
-            connection.close()
-
-            flash(
-                "Student with this email already exists.",
-                "danger"
-            )
-
-            return redirect(url_for('student_register'))
-
-        # Check enrollment number
-        if enrollment_no:
-
-            cursor.execute(
-                """
-                SELECT student_id
-                FROM students
-                WHERE enrollment_no = %s
-                """,
-                (enrollment_no,)
-            )
-
-            existing_enrollment = cursor.fetchone()
-
-            if existing_enrollment:
-                cursor.close()
-                connection.close()
-
-                flash(
-                    "Enrollment number already exists.",
-                    "danger"
-                )
-
-                return redirect(url_for('student_register'))
-
-        # Hash password
-        hashed_password = generate_password_hash(password)
-
-        # Insert student
-        cursor.execute(
-            """
-            INSERT INTO students
-            (
-                student_name,
-                email,
-                phone,
-                department,
-                course,
-                enrollment_no,
-                admission_year,
-                password
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                student_name,
-                email,
-                phone,
-                department,
-                course,
-                enrollment_no,
-                admission_year,
-                hashed_password
-            )
-        )
-
-        connection.commit()
-
-        cursor.close()
-        connection.close()
-
-        flash(
-            "Student registration successful. Please login.",
-            "success"
-        )
-
-        return redirect(url_for('student_login'))
-
-    return render_template('student/register.html')
-
-#==================================================
-# STUDENT DASHBOARD
-#==============================================
-@app.route('/student/dashboard')
-def student_dashboard():
-
-    if "student_id" not in session:
-        flash("Please login first.", "danger")
-        return redirect(url_for("student_login"))
-
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-
-    try:
-
-        # Get logged-in student
-        cursor.execute("""
-            SELECT
-                student_id,
-                student_name,
-                email,
-                phone,
-                department,
-                course,
-                enrollment_no,
-                admission_year,
-                status
-            FROM students
-            WHERE student_id = %s
-        """, (session["student_id"],))
-
-        student = cursor.fetchone()
-
-        # Get certificates of logged-in student
-        cursor.execute("""
-            SELECT
-                certificate_id,
-                student_id,
-                certificate_type,
-                course,
-                issue_date,
-                certificate_hash,
-                pdf_path,
-                status,
-                blockchain_status,
-                transaction_hash
-            FROM certificates
-            WHERE student_id = %s
-            ORDER BY issue_date DESC
-        """, (session["student_id"],))
-
-        certificates = cursor.fetchall()
-
-    finally:
-        cursor.close()
-        connection.close()
-
-    if not student:
-        session.clear()
-        flash("Student account not found.", "danger")
-        return redirect(url_for("student_login"))
-
-    return render_template(
-        "student/dashboard.html",
-        student=student,
-        certificates=certificates
-    )
-
-@app.route('/student/certificate/<int:certificate_id>')
-def student_certificate(certificate_id):
-
-    # Check student login
-    if "student_id" not in session:
-        flash("Please login first.", "danger")
-        return redirect(url_for("student_login"))
-
-    connection = get_db_connection()
-
-    if connection is None:
-        flash("Database connection failed.", "danger")
-        return redirect(url_for("student_dashboard"))
-
-    cursor = connection.cursor(dictionary=True)
-
-    try:
-
-        # Get ONLY the selected certificate
-        # belonging to the logged-in student
-        cursor.execute("""
-            SELECT
-                c.certificate_id,
-                c.student_id,
-                c.certificate_type,
-                c.course,
-                c.issue_date,
-                c.certificate_hash,
-                c.pdf_path,
-                c.status,
-                c.blockchain_status,
-                c.transaction_hash,
-
-                s.student_name,
-                s.email,
-                s.department,
-                s.enrollment_no
-
-            FROM certificates c
-
-            INNER JOIN students s
-                ON c.student_id = s.student_id
-
-            WHERE c.certificate_id = %s
-            AND c.student_id = %s
-
-        """, (
-            certificate_id,
-            session["student_id"]
-        ))
-
-        certificate = cursor.fetchone()
-
-    except Error as e:
-
-        print("Student certificate error:", e)
-
-        flash(
-            "Error loading certificate.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("student_dashboard")
-        )
-
-    finally:
-
-        cursor.close()
-        connection.close()
-
-    # Certificate doesn't exist
-    # or doesn't belong to this student
-    if certificate is None:
-
-        flash(
-            "Certificate not found.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("student_dashboard")
-        )
-
-    # Send ONE certificate to HTML
-    return render_template(
-        "student/certificate.html",
-        certificate=certificate
-    )
-
-
-# =====================================================
-# ADMIN LOGIN
-# =====================================================
-
-@app.route("/admin/login", methods=["GET", "POST"])
-def admin_login():
+@app.route("/register", methods=["GET", "POST"])
+def register():
 
     if request.method == "POST":
 
-        email = request.form.get("email")
-        password = request.form.get("password")
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        role = request.form.get("role", "student")
+
+        if not name or not email or not password:
+
+            flash("Please fill all required fields.", "error")
+
+            return redirect(url_for("register"))
+
+        # Do not allow public users to create admin accounts
+        if role not in ["student", "verifier"]:
+
+            role = "student"
 
         connection = get_db_connection()
 
         if connection is None:
 
-            flash("Database connection failed.", "danger")
+            flash("Database connection failed.", "error")
 
-            return render_template("admin/login.html")
-
+            return redirect(url_for("register"))
 
         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute(
-            """
-            SELECT *
-            FROM admins
-            WHERE email = %s
-            """,
-            (email,)
+        try:
+
+            cursor.execute(
+                """
+                SELECT id
+                FROM users
+                WHERE email = %s
+                """,
+                (email,)
+            )
+
+            existing_user = cursor.fetchone()
+
+            if existing_user:
+
+                flash("Email already registered.", "error")
+
+                return redirect(url_for("register"))
+
+            # Keep password compatible with your current database.
+            cursor.execute(
+                """
+                INSERT INTO users
+                (
+                    name,
+                    email,
+                    password,
+                    role
+                )
+                VALUES
+                (%s, %s, %s, %s)
+                """,
+                (
+                    name,
+                    email,
+                    password,
+                    role
+                )
+            )
+
+            connection.commit()
+
+            flash(
+                "Registration successful. Please login.",
+                "success"
+            )
+
+            return redirect(url_for("login"))
+
+        except Error as e:
+
+            connection.rollback()
+
+            print("Registration error:", e)
+
+            flash(
+                "Registration failed.",
+                "error"
+            )
+
+            return redirect(url_for("register"))
+
+        finally:
+
+            cursor.close()
+            connection.close()
+
+    return render_template("student/register.html")
+
+
+# =========================================================
+# LOGIN
+# =========================================================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+
+        if not email or not password:
+            flash("Please enter email and password.", "error")
+            return render_template("student/login.html")
+
+        connection = get_db_connection()
+
+        if connection is None:
+            flash("Database connection failed.", "error")
+            return render_template("student/login.html")
+
+        cursor = connection.cursor(dictionary=True)
+
+        try:
+
+            cursor.execute(
+                """
+                SELECT id, name, email, password, role
+                FROM users
+                WHERE email = %s
+                """,
+                (email,)
+            )
+
+            user = cursor.fetchone()
+
+        except Error as e:
+
+            print("Login database error:", e)
+            user = None
+
+        finally:
+
+            cursor.close()
+            connection.close()
+
+        # -------------------------------------------------
+        # USER NOT FOUND
+        # -------------------------------------------------
+        if user is None:
+
+            flash("Invalid email or password.", "error")
+
+            return render_template(
+                "student/login.html"
+            )
+
+        # -------------------------------------------------
+        # PASSWORD CHECK
+        # -------------------------------------------------
+        stored_password = user["password"]
+
+        password_correct = False
+
+        # Your current database uses plain-text passwords
+        if stored_password == password:
+
+            password_correct = True
+
+        else:
+
+            # Also support hashed passwords
+            try:
+                password_correct = check_password_hash(
+                    stored_password,
+                    password
+                )
+            except Exception:
+                password_correct = False
+
+        # -------------------------------------------------
+        # WRONG PASSWORD
+        # -------------------------------------------------
+        if not password_correct:
+
+            flash("Invalid email or password.", "error")
+
+            return render_template(
+                "student/login.html"
+            )
+
+        # -------------------------------------------------
+        # LOGIN SUCCESS
+        # -------------------------------------------------
+        session.clear()
+
+        session["user_id"] = user["id"]
+        session["name"] = user["name"]
+        session["email"] = user["email"]
+        session["role"] = user["role"]
+
+        flash(
+            "Login successful!",
+            "success"
         )
 
-        admin = cursor.fetchone()
+        # -------------------------------------------------
+        # ROLE REDIRECT
+        # -------------------------------------------------
+        if user["role"] == "student":
 
-        cursor.close()
-        connection.close()
+            return redirect(
+                url_for("student_dashboard")
+            )
 
-
-        if admin and check_password_hash(
-            admin["password"],
-            password
-        ):
-
-            session["admin_id"] = admin["admin_id"]
-            session["admin_name"] = admin["name"]
-            session["admin_email"] = admin["email"]
+        if user["role"] == "admin":
 
             return redirect(
                 url_for("admin_dashboard")
             )
 
-        else:
+        if user["role"] == "verifier":
 
-            flash(
-                "Invalid email or password.",
-                "danger"
+            return redirect(
+                url_for("verify_certificate")
             )
 
-    return render_template("admin/login.html")
+        # -------------------------------------------------
+        # UNKNOWN ROLE
+        # -------------------------------------------------
+        flash("Invalid user role.", "error")
 
-# =====================================================
-# DASHBOARD
-# =====================================================
-
-@app.route("/admin/dashboard")
-@admin_required
-def admin_dashboard():
-
-    connection = get_db_connection()
-
-    if connection is None:
-        flash("Database connection failed.", "danger")
-        return redirect(url_for("admin_login"))
-
-    cursor = connection.cursor(dictionary=True)
-
-    try:
-
-        # -----------------------------
-        # TOTAL STUDENTS
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM students
-        """)
-
-        total_students = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # TOTAL CERTIFICATES
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM certificates
-        """)
-
-        total_certificates = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # VERIFIED CERTIFICATES
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM certificates
-            WHERE status = 'Verified'
-        """)
-
-        verified_certificates = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # REVOKED CERTIFICATES
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM certificates
-            WHERE status = 'Revoked'
-        """)
-
-        revoked_certificates = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # TOTAL VERIFICATIONS
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM verification_logs
-        """)
-
-        total_verifications = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # SUCCESSFUL VERIFICATIONS
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM verification_logs
-            WHERE result = 'Valid'
-        """)
-
-        successful_verifications = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # FAILED VERIFICATIONS
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM verification_logs
-            WHERE result = 'Invalid'
-        """)
-
-        failed_verifications = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # VERIFICATION SUCCESS RATE
-        # -----------------------------
-
-        if total_verifications > 0:
-            verification_success_rate = round(
-                (successful_verifications / total_verifications) * 100,
-                2
-            )
-        else:
-            verification_success_rate = 0
-
-
-        # -----------------------------
-        # TOTAL BLOCKCHAIN RECORDS
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM blockchain_records
-        """)
-
-        total_blockchain_records = cursor.fetchone()["total"]
-
-
-        # -----------------------------
-        # CONFIRMED BLOCKCHAIN RECORDS
-        # -----------------------------
-
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM blockchain_records
-            WHERE status = 'Confirmed'
-        """)
-
-        confirmed_blockchain_records = cursor.fetchone()["total"]
-
-
-    except Error as e:
-
-        print("Dashboard Error:", e)
-
-        flash(
-            "Error loading dashboard data.",
-            "danger"
+        return render_template(
+            "student/login.html"
         )
 
-        return redirect(
-            url_for("admin_login")
-        )
-
-    finally:
-
-        cursor.close()
-        connection.close()
-
-
+    # -----------------------------------------------------
+    # GET REQUEST
+    # -----------------------------------------------------
     return render_template(
-        "admin/dashboard.html",
-
-        total_students=total_students,
-
-        total_certificates=total_certificates,
-
-        verified_certificates=verified_certificates,
-
-        revoked_certificates=revoked_certificates,
-
-        total_verifications=total_verifications,
-
-        successful_verifications=successful_verifications,
-
-        failed_verifications=failed_verifications,
-
-        verification_success_rate=verification_success_rate,
-
-        total_blockchain_records=total_blockchain_records,
-
-        confirmed_blockchain_records=confirmed_blockchain_records
+        "student/login.html"
     )
-# =====================================================
+# =========================================================
 # ADMIN REGISTRATION
-# =====================================================
+# =========================================================
 
 @app.route("/admin/register", methods=["GET", "POST"])
 def admin_register():
 
     if request.method == "POST":
 
-        # Get form data
-        name = request.form.get("name")
-        email = request.form.get("email")
-        phone = request.form.get("phone")
-        role = request.form.get("role")
-        password = request.form.get("password")
-        confirm_password = request.form.get("confirm_password")
-
-        # -------------------------------------------------
-        # BASIC VALIDATION
-        # -------------------------------------------------
-
-        if not name or not email or not password:
-            flash(
-                "Please fill all required fields.",
-                "danger"
-            )
-            return redirect(url_for("admin_register"))
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get(
+            "confirm_password",
+            ""
+        )
 
         if password != confirm_password:
+
             flash(
                 "Passwords do not match.",
-                "danger"
+                "error"
             )
-            return redirect(url_for("admin_register"))
 
-        # -------------------------------------------------
-        # DATABASE CONNECTION
-        # -------------------------------------------------
+            return redirect(
+                url_for("admin_register")
+            )
 
         connection = get_db_connection()
 
         if connection is None:
+
             flash(
                 "Database connection failed.",
-                "danger"
+                "error"
             )
-            return redirect(url_for("admin_register"))
+
+            return redirect(
+                url_for("admin_register")
+            )
 
         cursor = connection.cursor(dictionary=True)
 
         try:
 
-            # -------------------------------------------------
-            # CHECK IF EMAIL ALREADY EXISTS
-            # -------------------------------------------------
-
             cursor.execute(
                 """
-                SELECT admin_id
-                FROM admins
+                SELECT id
+                FROM users
                 WHERE email = %s
                 """,
                 (email,)
@@ -813,81 +612,56 @@ def admin_register():
             existing_admin = cursor.fetchone()
 
             if existing_admin:
+
                 flash(
-                    "An admin account with this email already exists.",
-                    "danger"
+                    "An account with this email already exists.",
+                    "error"
                 )
+
                 return redirect(
                     url_for("admin_register")
                 )
 
-            # -------------------------------------------------
-            # HASH PASSWORD
-            # -------------------------------------------------
-
-            password_hash = generate_password_hash(
-                password
-            )
-
-            # -------------------------------------------------
-            # INSERT ADMIN
-            # -------------------------------------------------
-
+            # Keep same password format as your current users table
             cursor.execute(
                 """
-                INSERT INTO admins
+                INSERT INTO users
                 (
                     name,
                     email,
-                    phone,
-                    role,
-                    password
+                    password,
+                    role
                 )
                 VALUES
-                (
-                    %s,
-                    %s,
-                    %s,
-                    %s,
-                    %s
-                )
+                (%s, %s, %s, 'admin')
                 """,
                 (
                     name,
                     email,
-                    phone,
-                    role,
-                    password_hash
+                    password
                 )
             )
 
             connection.commit()
 
             flash(
-                "Admin registration successful! Please login.",
+                "Admin account created successfully. Please login.",
                 "success"
             )
 
             return redirect(
-                url_for("admin_login")
+                url_for("login")
             )
 
         except Error as e:
 
             connection.rollback()
 
-            print(
-                "Admin registration error:",
-                e
-            )
+            print("Admin registration error:", e)
 
             flash(
-                "Error creating admin account.",
-                "danger"
-            )
-
-            return redirect(
-                url_for("admin_register")
+                "Admin registration failed.",
+                "error"
             )
 
         finally:
@@ -895,14 +669,245 @@ def admin_register():
             cursor.close()
             connection.close()
 
+    return render_template("student/register.html")
+
+
+# =========================================================
+# STUDENT DASHBOARD
+# =========================================================
+
+@app.route("/student/dashboard")
+def student_dashboard():
+
+    if "user_id" not in session:
+
+        return redirect(
+            url_for("login")
+        )
+
+    if session.get("role") != "student":
+
+        return redirect(
+            url_for("login")
+        )
+
+    connection = get_db_connection()
+
+    if connection is None:
+
+        flash(
+            "Database connection failed.",
+            "error"
+        )
+
+        return redirect(
+            url_for("login")
+        )
+
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+
+        cursor.execute(
+            """
+            SELECT *
+            FROM certificates
+            WHERE student_id = %s
+            ORDER BY id DESC
+            """,
+            (session["user_id"],)
+        )
+
+        certificates = cursor.fetchall()
+
+    except Error as e:
+
+        print("Student dashboard error:", e)
+
+        certificates = []
+
+    finally:
+
+        cursor.close()
+        connection.close()
+
     return render_template(
-        "admin/register.html"
+        "student/dashboard.html",
+        certificates=certificates
     )
 
 
-# =====================================================
-# STUDENTS
-# =====================================================
+# =========================================================
+# VIEW CERTIFICATE
+# =========================================================
+
+@app.route("/view-certificate/<certificate_id>")
+def view_certificate(certificate_id):
+
+    if "user_id" not in session:
+
+        return redirect(
+            url_for("login")
+        )
+
+    if session.get("role") != "student":
+
+        return redirect(
+            url_for("login")
+        )
+
+    connection = get_db_connection()
+
+    if connection is None:
+
+        flash(
+            "Database connection failed.",
+            "error"
+        )
+
+        return redirect(
+            url_for("student_dashboard")
+        )
+
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM certificates
+        WHERE certificate_id = %s
+        AND student_id = %s
+        """,
+        (
+            certificate_id,
+            session["user_id"]
+        )
+    )
+
+    certificate = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if certificate is None:
+
+        flash(
+            "Certificate not found.",
+            "error"
+        )
+
+        return redirect(
+            url_for("student_dashboard")
+        )
+
+    return render_template(
+        "certificate.html",
+        certificate=certificate
+    )
+
+
+# =========================================================
+# ADMIN DASHBOARD
+# =========================================================
+
+@app.route("/admin/dashboard")
+@admin_required
+def admin_dashboard():
+
+    connection = get_db_connection()
+
+    if connection is None:
+
+        flash(
+            "Database connection failed.",
+            "error"
+        )
+
+        return redirect(
+            url_for("login")
+        )
+
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM users
+            WHERE role = 'student'
+            """
+        )
+
+        total_students = cursor.fetchone()["total"]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM certificates
+            """
+        )
+
+        total_certificates = cursor.fetchone()["total"]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM certificates
+            WHERE blockchain_status = 'Valid'
+            """
+        )
+
+        verified_certificates = cursor.fetchone()["total"]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM certificates
+            WHERE blockchain_status = 'Revoked'
+            """
+        )
+
+        revoked_certificates = cursor.fetchone()["total"]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM verification_history
+            """
+        )
+
+        total_verifications = cursor.fetchone()["total"]
+
+    except Error as e:
+
+        print("Admin dashboard error:", e)
+
+        total_students = 0
+        total_certificates = 0
+        verified_certificates = 0
+        revoked_certificates = 0
+        total_verifications = 0
+
+    finally:
+
+        cursor.close()
+        connection.close()
+
+    return render_template(
+        "admin_dashboard.html",
+        total_students=total_students,
+        total_certificates=total_certificates,
+        verified_certificates=verified_certificates,
+        revoked_certificates=revoked_certificates,
+        total_verifications=total_verifications
+    )
+
+
+# =========================================================
+# ADMIN STUDENTS
+# =========================================================
+
 @app.route("/admin/students")
 @admin_required
 def admin_students():
@@ -910,153 +915,53 @@ def admin_students():
     connection = get_db_connection()
 
     if connection is None:
-        flash("Database connection failed.", "danger")
-        return redirect(url_for("admin_dashboard"))
+
+        flash(
+            "Database connection failed.",
+            "error"
+        )
+
+        return redirect(
+            url_for("admin_dashboard")
+        )
 
     cursor = connection.cursor(dictionary=True)
 
     cursor.execute(
         """
         SELECT
-            s.*,
+            u.id,
+            u.name,
+            u.email,
 
             (
                 SELECT COUNT(*)
                 FROM certificates c
-                WHERE c.student_id = s.student_id
-            ) AS certificate_count
+                WHERE c.student_id = u.id
+            ) AS certificates_count
 
-        FROM students s
+        FROM users u
 
-        ORDER BY s.student_id DESC
+        WHERE u.role = 'student'
+
+        ORDER BY u.id DESC
         """
     )
 
     students = cursor.fetchall()
-
-    cursor.execute(
-        "SELECT COUNT(*) AS total FROM students"
-    )
-
-    total_students = cursor.fetchone()["total"]
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM students
-        WHERE status = 'Verified'
-        """
-    )
-
-    verified_students = cursor.fetchone()["total"]
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM students
-        WHERE status = 'Pending'
-        """
-    )
-
-    pending_students = cursor.fetchone()["total"]
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM certificates
-        """
-    )
-
-    total_certificates = cursor.fetchone()["total"]
 
     cursor.close()
     connection.close()
 
     return render_template(
         "admin/student.html",
-        students=students,
-        total_students=total_students,
-        verified_students=verified_students,
-        pending_students=pending_students,
-        total_certificates=total_certificates
-    )
-
-# =====================================================
-# ADD STUDENT
-# =====================================================
-
-@app.route("/admin/students/add", methods=["GET", "POST"])
-@admin_required
-def add_student():
-
-    if request.method == "POST":
-
-        student_name = request.form.get("student_name")
-        email = request.form.get("email")
-        phone = request.form.get("phone")
-        department = request.form.get("department")
-        course = request.form.get("course")
-        enrollment_no = request.form.get("enrollment_no")
-        admission_year = request.form.get("admission_year")
-
-
-        connection = get_db_connection()
-
-        cursor = connection.cursor()
-
-
-        cursor.execute(
-            """
-            INSERT INTO students
-            (
-                student_name,
-                email,
-                phone,
-                department,
-                course,
-                enrollment_no,
-                admission_year
-            )
-
-            VALUES
-            (%s,%s,%s,%s,%s,%s,%s)
-            """,
-
-            (
-                student_name,
-                email,
-                phone,
-                department,
-                course,
-                enrollment_no,
-                admission_year
-            )
-        )
-
-
-        connection.commit()
-
-        cursor.close()
-        connection.close()
-
-        flash(
-            "Student added successfully.",
-            "success"
-        )
-
-        return redirect(
-            url_for("admin_students")
-        )
-
-    return render_template(
-        "admin/add_student.html"
+        students=students
     )
 
 
-
-# =====================================================
-# STUDENT DETAILS
-# =====================================================
+# =========================================================
+# ADMIN STUDENT DETAILS
+# =========================================================
 
 @app.route("/admin/students/<int:student_id>")
 @admin_required
@@ -1064,50 +969,41 @@ def admin_student_details(student_id):
 
     connection = get_db_connection()
 
-    if connection is None:
-        flash("Database connection failed.", "danger")
-        return redirect(url_for("admin_students"))
-
     cursor = connection.cursor(dictionary=True)
 
-    try:
-        # Get student
-        cursor.execute(
-            """
-            SELECT *
-            FROM students
-            WHERE student_id = %s
-            """,
-            (student_id,)
-        )
+    cursor.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id = %s
+        AND role = 'student'
+        """,
+        (student_id,)
+    )
 
-        student = cursor.fetchone()
+    student = cursor.fetchone()
 
-        if student is None:
-            flash("Student not found.", "danger")
-            return redirect(url_for("admin_students"))
+    if student is None:
 
-        # Get student's certificates
-        cursor.execute(
-            """
-            SELECT *
-            FROM certificates
-            WHERE student_id = %s
-            ORDER BY issue_date DESC
-            """,
-            (student_id,)
-        )
-
-        certificates = cursor.fetchall()
-
-    except Error as e:
-        print("Student details error:", e)
-        flash("Error loading student details.", "danger")
-        return redirect(url_for("admin_students"))
-
-    finally:
         cursor.close()
         connection.close()
+
+        return "Student not found", 404
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM certificates
+        WHERE student_id = %s
+        ORDER BY id DESC
+        """,
+        (student_id,)
+    )
+
+    certificates = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
 
     return render_template(
         "admin/student_details.html",
@@ -1116,9 +1012,9 @@ def admin_student_details(student_id):
     )
 
 
-# =====================================================
+# =========================================================
 # EDIT STUDENT
-# =====================================================
+# =========================================================
 
 @app.route(
     "/admin/students/<int:student_id>/edit",
@@ -1129,50 +1025,25 @@ def edit_student(student_id):
 
     connection = get_db_connection()
 
-    if connection is None:
-        flash("Database connection failed.", "danger")
-        return redirect(url_for("admin_students"))
-
     cursor = connection.cursor(dictionary=True)
-
-    # -------------------------------------------------
-    # UPDATE STUDENT
-    # -------------------------------------------------
 
     if request.method == "POST":
 
-        student_name = request.form.get("student_name")
+        name = request.form.get("name")
         email = request.form.get("email")
-        phone = request.form.get("phone")
-        department = request.form.get("department")
-        course = request.form.get("course")
-        enrollment_no = request.form.get("enrollment_no")
-        admission_year = request.form.get("admission_year")
-        status = request.form.get("status")
 
         cursor.execute(
             """
-            UPDATE students
+            UPDATE users
             SET
-                student_name = %s,
-                email = %s,
-                phone = %s,
-                department = %s,
-                course = %s,
-                enrollment_no = %s,
-                admission_year = %s,
-                status = %s
-            WHERE student_id = %s
+                name = %s,
+                email = %s
+            WHERE id = %s
+            AND role = 'student'
             """,
             (
-                student_name,
+                name,
                 email,
-                phone,
-                department,
-                course,
-                enrollment_no,
-                admission_year,
-                status,
                 student_id
             )
         )
@@ -1194,37 +1065,24 @@ def edit_student(student_id):
             )
         )
 
-    # -------------------------------------------------
-    # GET STUDENT DETAILS
-    # -------------------------------------------------
-
     cursor.execute(
         """
         SELECT *
-        FROM students
-        WHERE student_id = %s
+        FROM users
+        WHERE id = %s
+        AND role = 'student'
         """,
         (student_id,)
     )
 
     student = cursor.fetchone()
 
-    if student is None:
-
-        cursor.close()
-        connection.close()
-
-        flash(
-            "Student not found.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_students")
-        )
-
     cursor.close()
     connection.close()
+
+    if student is None:
+
+        return "Student not found", 404
 
     return render_template(
         "admin/edit_student.html",
@@ -1232,9 +1090,9 @@ def edit_student(student_id):
     )
 
 
-# =====================================================
+# =========================================================
 # DELETE STUDENT
-# =====================================================
+# =========================================================
 
 @app.route(
     "/admin/students/<int:student_id>/delete",
@@ -1245,21 +1103,13 @@ def delete_student(student_id):
 
     connection = get_db_connection()
 
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_students")
-        )
-
     cursor = connection.cursor()
 
     cursor.execute(
         """
-        DELETE FROM students
-        WHERE student_id = %s
+        DELETE FROM users
+        WHERE id = %s
+        AND role = 'student'
         """,
         (student_id,)
     )
@@ -1279,384 +1129,284 @@ def delete_student(student_id):
     )
 
 
-# =====================================================
-# CERTIFICATES
-# =====================================================
+# =========================================================
+# ADMIN CERTIFICATES
+# =========================================================
 
-@app.route("/admin/certificates")
+@app.route("/admin/certificate")
 @admin_required
 def admin_certificates():
 
     connection = get_db_connection()
 
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_dashboard")
-        )
-
     cursor = connection.cursor(dictionary=True)
-
-    # -------------------------------------------------
-    # ALL CERTIFICATES
-    # -------------------------------------------------
 
     cursor.execute(
         """
         SELECT
             c.*,
-            s.student_name
+            u.name AS student_name,
+            u.email AS student_email
+
         FROM certificates c
-        JOIN students s
-            ON c.student_id = s.student_id
-        ORDER BY c.certificate_id DESC
+
+        JOIN users u
+        ON c.student_id = u.id
+
+        ORDER BY c.id DESC
         """
     )
 
     certificates = cursor.fetchall()
-
-    # -------------------------------------------------
-    # TOTAL CERTIFICATES
-    # -------------------------------------------------
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM certificates
-        """
-    )
-
-    total_certificates = cursor.fetchone()["total"]
-
-    # -------------------------------------------------
-    # VERIFIED CERTIFICATES
-    # -------------------------------------------------
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM certificates
-        WHERE status = 'Verified'
-        """
-    )
-
-    verified_certificates = cursor.fetchone()["total"]
-
-    # -------------------------------------------------
-    # PENDING CERTIFICATES
-    # -------------------------------------------------
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM certificates
-        WHERE status = 'Pending'
-        """
-    )
-
-    pending_certificates = cursor.fetchone()["total"]
-
-    # -------------------------------------------------
-    # REVOKED CERTIFICATES
-    # -------------------------------------------------
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM certificates
-        WHERE status = 'Revoked'
-        """
-    )
-
-    revoked_certificates = cursor.fetchone()["total"]
 
     cursor.close()
     connection.close()
 
     return render_template(
         "admin/certificate.html",
-        certificates=certificates,
-        total_certificates=total_certificates,
-        verified_certificates=verified_certificates,
-        pending_certificates=pending_certificates,
-        revoked_certificates=revoked_certificates
+        certificates=certificates
     )
 
 
-# =====================================================
+# =========================================================
 # ISSUE CERTIFICATE
-# =====================================================
-@app.route("/admin/issue-certificate", methods=["GET", "POST"])
+# =========================================================
+
+@app.route(
+    "/admin/certificate/issue_certificate",
+    methods=["GET", "POST"]
+)
+@admin_required
 def issue_certificate():
 
-    # Check admin login
-    if "admin_id" not in session:
-        flash("Please login as admin first.", "warning")
-        return redirect(url_for("admin_login"))
+    connection = get_db_connection()
+
+    if connection is None:
+
+        flash(
+            "Database connection failed.",
+            "error"
+        )
+
+        return redirect(
+            url_for("admin_dashboard")
+        )
+
+    cursor = connection.cursor(dictionary=True)
 
     if request.method == "POST":
 
-        # Get form data
-        student_id = request.form.get("student_id")
-        certificate_type = request.form.get("certificate_type")
-        course = request.form.get("course")
-        issue_date = request.form.get("issue_date")
+        certificate_id = request.form.get(
+            "certificate_id"
+        )
 
-        # Basic validation
-        if not student_id:
-            flash("Please select a student.", "danger")
-            return redirect(url_for("issue_certificate"))
+        certificate_name = request.form.get(
+            "certificate_name"
+        )
 
-        if not certificate_type:
-            flash("Please select a certificate type.", "danger")
-            return redirect(url_for("issue_certificate"))
+        student_id = request.form.get(
+            "student_id"
+        )
 
-        if not course:
-            flash("Please enter the course.", "danger")
-            return redirect(url_for("issue_certificate"))
+        student_name = request.form.get(
+            "student_name"
+        )
 
-        if not issue_date:
-            flash("Please select the issue date.", "danger")
-            return redirect(url_for("issue_certificate"))
+        course_name = request.form.get(
+            "course_name"
+        )
 
-        connection = None
-        cursor = None
+        institution_name = request.form.get(
+            "institution_name"
+        )
+
+        issue_date = request.form.get(
+            "issue_date"
+        )
+
+        certificate_hash = request.form.get(
+            "certificate_hash"
+        )
+
+        if not certificate_id:
+
+            flash(
+                "Certificate ID is required.",
+                "error"
+            )
+
+            cursor.close()
+            connection.close()
+
+            return redirect(
+                url_for("issue_certificate")
+            )
+
+        # Check duplicate certificate
+        cursor.execute(
+            """
+            SELECT id
+            FROM certificates
+            WHERE certificate_id = %s
+            """,
+            (certificate_id,)
+        )
+
+        existing = cursor.fetchone()
+
+        if existing:
+
+            flash(
+                "Certificate ID already exists.",
+                "error"
+            )
+
+            cursor.close()
+            connection.close()
+
+            return redirect(
+                url_for("issue_certificate")
+            )
+
+        # =================================================
+        # BLOCKCHAIN ISSUE
+        # =================================================
+
+        blockchain_success = False
 
         try:
 
-            # Connect to MySQL
-            connection = get_db_connection()
-            cursor = connection.cursor(dictionary=True)
+            if w3.is_connected():
 
-            # -----------------------------------------
-            # Get selected student
-            # -----------------------------------------
+                accounts = w3.eth.accounts
 
-            cursor.execute("""
-                SELECT
-                    student_id,
-                    student_name,
-                    email,
-                    course
-                FROM students
-                WHERE student_id = %s
-            """, (student_id,))
+                if accounts:
 
-            student = cursor.fetchone()
+                    issuer = accounts[0]
 
-            if not student:
-                flash("Selected student does not exist.", "danger")
-                return redirect(url_for("issue_certificate"))
+                    transaction = contract.functions.issueCertificate(
+                        certificate_id,
+                        student_name,
+                        course_name,
+                        institution_name,
+                        certificate_hash
+                    ).transact({
+                        "from": issuer
+                    })
 
-            # -----------------------------------------
-            # Generate certificate ID
-            # -----------------------------------------
+                    w3.eth.wait_for_transaction_receipt(
+                        transaction
+                    )
 
-            certificate_id = (
-                "CERT-" +
-                datetime.now().strftime("%Y%m%d") +
-                "-" +
-                uuid.uuid4().hex[:6].upper()
-            )
-
-            # -----------------------------------------
-            # Create certificate data
-            # -----------------------------------------
-
-            certificate_data = (
-                f"{certificate_id}|"
-                f"{student['student_id']}|"
-                f"{certificate_type}|"
-                f"{course}|"
-                f"{issue_date}"
-            )
-
-            # -----------------------------------------
-            # Generate SHA-256 hash
-            # -----------------------------------------
-
-            certificate_hash = hashlib.sha256(
-                certificate_data.encode("utf-8")
-            ).hexdigest()
-
-            # -----------------------------------------
-            # Insert certificate into database
-            # -----------------------------------------
-
-            query = """
-                INSERT INTO certificates
-                (
-                    student_id,
-                    certificate_type,
-                    course,
-                    issue_date,
-                    certificate_hash,
-                    status,
-                    blockchain_status
-                )
-                VALUES
-                (
-                    %s,
-                    %s,
-                    %s,
-                    %s,
-                    %s,
-                    %s,
-                    %s
-                )
-            """
-
-            values = (
-                student["student_id"],
-                certificate_type,
-                course,
-                issue_date,
-                certificate_hash,
-                "Verified",
-                "Pending"
-            )
-
-            cursor.execute(query, values)
-
-            # -----------------------------------------
-            # Get generated database ID
-            # -----------------------------------------
-
-            database_certificate_id = cursor.lastrowid
-
-            # -----------------------------------------
-            # Save changes
-            # -----------------------------------------
-
-            connection.commit()
-
-            print("----------------------------------------")
-            print("CERTIFICATE ISSUED SUCCESSFULLY")
-            print("Database ID:", database_certificate_id)
-            print("Student ID:", student["student_id"])
-            print("Student Name:", student["student_name"])
-            print("Certificate Type:", certificate_type)
-            print("Certificate Hash:", certificate_hash)
-            print("----------------------------------------")
-
-            flash(
-                f"Certificate issued successfully to {student['student_name']}!",
-                "success"
-            )
-
-            return redirect(
-                url_for(
-                    "certificate_success",
-                    certificate_id=database_certificate_id
-                )
-            )
+                    blockchain_success = True
 
         except Exception as e:
 
-            if connection:
-                connection.rollback()
-
-            print("ERROR ISSUING CERTIFICATE:", str(e))
-
-            flash(
-                f"Error issuing certificate: {str(e)}",
-                "danger"
+            print(
+                "Blockchain issue error:",
+                e
             )
 
-            return redirect(url_for("issue_certificate"))
+        if blockchain_success:
 
-        finally:
+            blockchain_status = "Valid"
 
-            if cursor:
-                cursor.close()
+        else:
 
-    return render_template("admin/issue_certificate.html")
+            blockchain_status = "Pending"
 
+        # =================================================
+        # SAVE TO MYSQL
+        # =================================================
 
-@app.route("/admin/certificate-success/<int:certificate_id>")
-def certificate_success(certificate_id):
+        cursor.execute(
+            """
+            INSERT INTO certificates
+            (
+                certificate_id,
+                student_id,
+                certificate_name,
+                student_name,
+                course_name,
+                institution_name,
+                issue_date,
+                certificate_hash,
+                blockchain_status
+            )
 
-    if "admin_id" not in session:
-        flash("Please login as admin first.", "warning")
-        return redirect(url_for("admin_login"))
-
-    connection = None
-    cursor = None
-
-    try:
-
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-
-        cursor.execute("""
-            SELECT
-                c.certificate_id,
-                c.student_id,
-                c.certificate_type,
-                c.course,
-                c.issue_date,
-                c.certificate_hash,
-                c.status,
-                c.blockchain_status,
-                c.transaction_hash,
-                s.student_name,
-                s.email
-            FROM certificates c
-            INNER JOIN students s
-                ON c.student_id = s.student_id
-            WHERE c.certificate_id = %s
-        """, (certificate_id,))
-
-        certificate = cursor.fetchone()
-
-        if not certificate:
-            flash("Certificate not found.", "danger")
-            return redirect(url_for("admin_certificates"))
-
-        return render_template(
-            "admin/certificate_success.html",
-            certificate=certificate
+            VALUES
+            (
+                %s,%s,%s,%s,%s,%s,%s,%s,%s
+            )
+            """,
+            (
+                certificate_id,
+                student_id,
+                certificate_name,
+                student_name,
+                course_name,
+                institution_name,
+                issue_date,
+                certificate_hash,
+                blockchain_status
+            )
         )
 
-    except Exception as e:
+        connection.commit()
 
-        print("CERTIFICATE SUCCESS ERROR:", str(e))
+        cursor.close()
+        connection.close()
 
-        flash(
-            f"Error loading certificate: {str(e)}",
-            "danger"
+        if blockchain_success:
+
+            flash(
+                "Certificate issued and recorded on blockchain.",
+                "success"
+            )
+
+        else:
+
+            flash(
+                "Certificate saved in database, but blockchain transaction failed.",
+                "error"
+            )
+
+        return redirect(
+            url_for("admin_certificates")
         )
 
-        return redirect(url_for("admin_certificates"))
+    # GET request
+    cursor.execute(
+        """
+        SELECT id, name, email
+        FROM users
+        WHERE role = 'student'
+        ORDER BY name
+        """
+    )
 
-    finally:
+    students = cursor.fetchall()
 
-        if cursor:
-            cursor.close()
+    cursor.close()
+    connection.close()
 
-# =====================================================
+    return render_template(
+        "admin/issue_certificate.html",
+        students=students
+    )
+
+
+# =========================================================
 # CERTIFICATE DETAILS
-# =====================================================
+# =========================================================
 
 @app.route(
-    "/admin/certificates/<int:certificate_id>"
+    "/admin/certificate/<certificate_id>"
 )
 @admin_required
 def certificate_details(certificate_id):
 
     connection = get_db_connection()
-
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_certificates")
-        )
 
     cursor = connection.cursor(dictionary=True)
 
@@ -1664,13 +1414,14 @@ def certificate_details(certificate_id):
         """
         SELECT
             c.*,
-            s.student_name,
-            s.email,
-            s.department,
-            s.enrollment_no
+            u.name AS student_name,
+            u.email AS student_email
+
         FROM certificates c
-        JOIN students s
-            ON c.student_id = s.student_id
+
+        JOIN users u
+        ON c.student_id = u.id
+
         WHERE c.certificate_id = %s
         """,
         (certificate_id,)
@@ -1682,6 +1433,7 @@ def certificate_details(certificate_id):
     connection.close()
 
     if certificate is None:
+
         return "Certificate not found", 404
 
     return render_template(
@@ -1690,121 +1442,56 @@ def certificate_details(certificate_id):
     )
 
 
-# =====================================================
-# REVOKED CERTIFICATES
-# =====================================================
-
-@app.route("/admin/revoked-certificates")
-@admin_required
-def revoked_certificates():
-
-    connection = get_db_connection()
-
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_dashboard")
-        )
-
-    cursor = connection.cursor(dictionary=True)
-
-    cursor.execute(
-        """
-        SELECT
-            c.*,
-            s.student_name
-        FROM certificates c
-        JOIN students s
-            ON c.student_id = s.student_id
-        WHERE c.status = 'Revoked'
-        ORDER BY c.revoked_at DESC
-        """
-    )
-
-    certificates = cursor.fetchall()
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM certificates
-        WHERE status = 'Revoked'
-        """
-    )
-
-    total_revoked = cursor.fetchone()["total"]
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM certificates
-        WHERE status = 'Revoked'
-        AND blockchain_status = 'Confirmed'
-        """
-    )
-
-    blockchain_recorded = cursor.fetchone()["total"]
-
-    cursor.close()
-    connection.close()
-
-    return render_template(
-        "admin/revoked_certificate.html",
-        certificates=certificates,
-        total_revoked=total_revoked,
-        blockchain_recorded=blockchain_recorded,
-        recent_revocations=total_revoked
-    )
-
-
-# =====================================================
+# =========================================================
 # REVOKE CERTIFICATE
-# =====================================================
+# =========================================================
 
 @app.route(
-    "/admin/certificates/<int:certificate_id>/revoke",
+    "/admin/certificate/<certificate_id>/revoke",
     methods=["POST"]
 )
 @admin_required
 def revoke_certificate(certificate_id):
 
-    reason = request.form.get(
-        "revocation_reason"
-    )
-
     connection = get_db_connection()
 
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for(
-                "certificate_details",
-                certificate_id=certificate_id
-            )
-        )
-
     cursor = connection.cursor()
+
+    # Blockchain revoke
+    try:
+
+        if w3.is_connected():
+
+            accounts = w3.eth.accounts
+
+            if accounts:
+
+                transaction = contract.functions.revokeCertificate(
+                    certificate_id
+                ).transact({
+                    "from": accounts[0]
+                })
+
+                w3.eth.wait_for_transaction_receipt(
+                    transaction
+                )
+
+    except Exception as e:
+
+        print(
+            "Blockchain revoke error:",
+            e
+        )
 
     cursor.execute(
         """
         UPDATE certificates
-        SET
-            status = 'Revoked',
-            revoked_at = NOW(),
-            revoked_by = %s,
-            revocation_reason = %s
+
+        SET blockchain_status = 'Revoked'
+
         WHERE certificate_id = %s
         """,
-        (
-            session.get("admin_name"),
-            reason,
-            certificate_id
-        )
+        (certificate_id,)
     )
 
     connection.commit()
@@ -1825,97 +1512,484 @@ def revoke_certificate(certificate_id):
     )
 
 
-# =====================================================
-# VERIFICATION HISTORY
-# =====================================================
-@app.route("/admin/verifications")
-@admin_required
-def admin_verification():
+# =========================================================
+# VERIFY CERTIFICATE
+# =========================================================
+
+@app.route(
+    "/verify",
+    methods=["GET", "POST"]
+)
+def verify_certificate():
+
+    if request.method == "GET":
+
+        return render_template(
+            "verify.html"
+        )
+
+    certificate_id = request.form.get(
+        "certificate_id",
+        ""
+    ).strip()
+
+    uploaded_file = request.files.get(
+        "certificate_file"
+    )
+
+    # =====================================================
+    # 1. PDF TEXT SEARCH
+    # =====================================================
+
+    if uploaded_file and uploaded_file.filename:
+
+        try:
+
+            pdf_bytes = uploaded_file.read()
+
+            # -------------------------------------------------
+            # Extract PDF text
+            # -------------------------------------------------
+
+            if fitz is not None:
+
+                document = fitz.open(
+                    stream=pdf_bytes,
+                    filetype="pdf"
+                )
+
+                pdf_text = ""
+
+                for page in document:
+
+                    pdf_text += page.get_text()
+
+                document.close()
+
+            else:
+
+                reader = PdfReader(
+                    io.BytesIO(pdf_bytes)
+                )
+
+                pdf_text = ""
+
+                for page in reader.pages:
+
+                    text = page.extract_text()
+
+                    if text:
+
+                        pdf_text += text
+
+            # -------------------------------------------------
+            # Search Certificate ID
+            # -------------------------------------------------
+
+            match = re.search(
+                r"Certificate\s*ID\s*[:=\-]?\s*([A-Za-z0-9_-]+)",
+                pdf_text,
+                re.IGNORECASE
+            )
+
+            if match:
+
+                certificate_id = match.group(1).strip()
+
+                print(
+                    "CERTIFICATE ID FROM PDF:",
+                    certificate_id
+                )
+
+        except Exception as e:
+
+            print(
+                "PDF extraction error:",
+                e
+            )
+
+    # =====================================================
+    # 2. IF NO ID -> QR SCAN
+    # =====================================================
+
+    if not certificate_id and uploaded_file:
+
+        if (
+            fitz is not None
+            and cv2 is not None
+            and np is not None
+        ):
+
+            try:
+
+                document = fitz.open(
+                    stream=pdf_bytes,
+                    filetype="pdf"
+                )
+
+                detector = cv2.QRCodeDetector()
+
+                for page in document:
+
+                    pix = page.get_pixmap(
+                        matrix=fitz.Matrix(3, 3)
+                    )
+
+                    image = np.frombuffer(
+                        pix.samples,
+                        dtype=np.uint8
+                    )
+
+                    image = image.reshape(
+                        pix.height,
+                        pix.width,
+                        pix.n
+                    )
+
+                    if pix.n == 4:
+
+                        image = cv2.cvtColor(
+                            image,
+                            cv2.COLOR_RGBA2RGB
+                        )
+
+                    else:
+
+                        image = cv2.cvtColor(
+                            image,
+                            cv2.COLOR_RGB2BGR
+                        )
+
+                    data, points, _ = detector.detectAndDecode(
+                        image
+                    )
+
+                    if data:
+
+                        print(
+                            "QR DATA:",
+                            data
+                        )
+
+                        # QR contains plain certificate ID
+                        qr_match = re.search(
+                            r"certificateId\s*['\"]?\s*[:=]\s*['\"]?([A-Za-z0-9_-]+)",
+                            data,
+                            re.IGNORECASE
+                        )
+
+                        if qr_match:
+
+                            certificate_id = (
+                                qr_match.group(1)
+                            )
+
+                        else:
+
+                            # If QR itself is just the ID
+                            simple_match = re.fullmatch(
+                                r"[A-Za-z0-9_-]+",
+                                data.strip()
+                            )
+
+                            if simple_match:
+
+                                certificate_id = data.strip()
+
+                    if certificate_id:
+
+                        break
+
+                document.close()
+
+            except Exception as e:
+
+                print(
+                    "QR scan error:",
+                    e
+                )
+
+    # =====================================================
+    # 3. CANNOT VERIFY
+    # =====================================================
+
+    if not certificate_id:
+
+        return render_template(
+            "verification_result.html",
+            status="CANNOT VERIFY",
+            certificate=None,
+            message="Certificate ID or usable QR code was not found."
+        )
+
+    print(
+        "FINAL CERTIFICATE ID:",
+        certificate_id
+    )
+
+    # =====================================================
+    # 4. BLOCKCHAIN CHECK
+    # =====================================================
+
+    if not w3.is_connected():
+
+        return render_template(
+            "verification_result.html",
+            status="CANNOT VERIFY",
+            certificate=None,
+            message="Blockchain network is not connected."
+        )
+
+    try:
+
+        exists, valid = contract.functions.verifyCertificate(
+            certificate_id
+        ).call()
+
+        print(
+            "VERIFYING CERTIFICATE:",
+            certificate_id
+        )
+
+        print(
+            "EXISTS:",
+            exists
+        )
+
+        print(
+            "VALID:",
+            valid
+        )
+
+    except Exception as e:
+
+        print(
+            "Blockchain verification error:",
+            e
+        )
+
+        return render_template(
+            "verification_result.html",
+            status="CANNOT VERIFY",
+            certificate=None,
+            message="Unable to verify certificate on blockchain."
+        )
+
+    # =====================================================
+    # 5. CERTIFICATE NOT FOUND
+    # =====================================================
+
+    if not exists:
+
+        save_verification_history(
+            certificate_id,
+            None,
+            "Invalid"
+        )
+
+        return render_template(
+            "verification_result.html",
+            status="INVALID",
+            certificate=None,
+            message="Certificate was not found on blockchain."
+        )
+
+    # =====================================================
+    # 6. GET BLOCKCHAIN DATA
+    # =====================================================
+
+    try:
+
+        blockchain_certificate = (
+            contract.functions.getCertificate(
+                certificate_id
+            ).call()
+        )
+
+        certificate = {
+
+            "certificate_id":
+                blockchain_certificate[0],
+
+            "student_name":
+                blockchain_certificate[1],
+
+            "course_name":
+                blockchain_certificate[2],
+
+            "institution_name":
+                blockchain_certificate[3],
+
+            "certificate_hash":
+                blockchain_certificate[4],
+
+            "issue_date":
+                blockchain_certificate[5],
+
+            "issuer":
+                blockchain_certificate[6],
+
+            "revoked":
+                blockchain_certificate[7]
+        }
+
+    except Exception as e:
+
+        print(
+            "Get certificate error:",
+            e
+        )
+
+        return render_template(
+            "verification_result.html",
+            status="CANNOT VERIFY",
+            certificate=None,
+            message="Certificate data could not be retrieved."
+        )
+
+    # =====================================================
+    # 7. FINAL STATUS
+    # =====================================================
+
+    if valid and not certificate["revoked"]:
+
+        status = "VALID"
+
+    else:
+
+        status = "INVALID"
+
+    # =====================================================
+    # 8. SAVE HISTORY
+    # =====================================================
+
+    save_verification_history(
+        certificate_id,
+        certificate,
+        status
+    )
+
+    # =====================================================
+    # 9. SHOW RESULT
+    # =====================================================
+
+    return render_template(
+        "verification_result.html",
+        status=status,
+        certificate=certificate,
+        message="Certificate verification completed."
+    )
+
+
+# =========================================================
+# SAVE VERIFICATION HISTORY
+# =========================================================
+
+def save_verification_history(
+    certificate_id,
+    certificate=None,
+    status="Invalid"
+):
+
+    if "user_id" not in session:
+
+        print(
+            "USER NOT LOGGED IN."
+        )
+
+        return
 
     connection = get_db_connection()
 
     if connection is None:
 
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
+        return
 
-        return redirect(
-            url_for("admin_dashboard")
-        )
-
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor()
 
     try:
 
-        cursor.execute(
-            """
-            SELECT
-                v.*,
-                c.certificate_hash,
-                s.student_name
-            FROM verification_logs v
-            JOIN certificates c
-                ON v.certificate_id = c.certificate_id
-            JOIN students s
-                ON c.student_id = s.student_id
-            ORDER BY v.verified_at DESC
-            """
-        )
+        if certificate:
 
-        verifications = cursor.fetchall()
+            student_name = certificate.get(
+                "student_name"
+            )
 
-        cursor.execute(
-            """
-            SELECT COUNT(*) AS total
-            FROM verification_logs
-            """
-        )
+            course_name = certificate.get(
+                "course_name"
+            )
 
-        total_verifications = cursor.fetchone()["total"]
+            institution_name = certificate.get(
+                "institution_name"
+            )
 
-        cursor.execute(
-            """
-            SELECT COUNT(*) AS total
-            FROM verification_logs
-            WHERE result = 'Valid'
-            """
-        )
+            certificate_hash = certificate.get(
+                "certificate_hash"
+            )
 
-        valid_verifications = cursor.fetchone()["total"]
+            issue_date = str(
+                certificate.get(
+                    "issue_date"
+                )
+            )
 
-        cursor.execute(
-            """
-            SELECT COUNT(*) AS total
-            FROM verification_logs
-            WHERE result = 'Invalid'
-            """
-        )
+            issuer = str(
+                certificate.get(
+                    "issuer"
+                )
+            )
 
-        invalid_verifications = cursor.fetchone()["total"]
+        else:
+
+            student_name = None
+            course_name = None
+            institution_name = None
+            certificate_hash = None
+            issue_date = None
+            issuer = None
 
         cursor.execute(
             """
-            SELECT COUNT(*) AS total
-            FROM verification_logs
-            WHERE blockchain_status = 'Confirmed'
-            """
+            INSERT INTO verification_history
+            (
+                user_id,
+                certificate_id,
+                student_name,
+                course_name,
+                institution_name,
+                certificate_hash,
+                issue_date,
+                issuer,
+                status
+            )
+
+            VALUES
+            (
+                %s,%s,%s,%s,%s,%s,%s,%s,%s
+            )
+            """,
+            (
+                session["user_id"],
+                certificate_id,
+                student_name,
+                course_name,
+                institution_name,
+                certificate_hash,
+                issue_date,
+                issuer,
+                status
+            )
         )
 
-        blockchain_confirmed = cursor.fetchone()["total"]
+        connection.commit()
 
     except Error as e:
 
-        print("Verification Error:", e)
+        connection.rollback()
 
-        flash(
-            "Error loading verification data.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_dashboard")
+        print(
+            "Verification history error:",
+            e
         )
 
     finally:
@@ -1923,50 +1997,31 @@ def admin_verification():
         cursor.close()
         connection.close()
 
-    return render_template(
-        "admin/verification.html",
-        verifications=verifications,
-        total_verifications=total_verifications,
-        valid_verifications=valid_verifications,
-        invalid_verifications=invalid_verifications,
-        blockchain_confirmed=blockchain_confirmed
-    )
 
+# =========================================================
+# VERIFIED CERTIFICATES
+# =========================================================
 
-# =====================================================
-# VERIFY CERTIFICATE
-# =====================================================
+@app.route("/verified_certificates")
+def verified_certificates():
 
-@app.route(
-    "/verify-certificate",
-    methods=["POST"]
-)
-@admin_required
-def verify_certificate():
+    if "user_id" not in session:
 
-    certificate_input = request.form.get(
-        "certificate_input"
-    )
-
-    verifier_name = session.get(
-        "admin_name",
-        "Administrator"
-    )
-
-    verifier_email = session.get(
-        "admin_email",
-        ""
-    )
+        return redirect(
+            url_for("login")
+        )
 
     connection = get_db_connection()
 
     if connection is None:
+
         flash(
             "Database connection failed.",
-            "danger"
+            "error"
         )
+
         return redirect(
-            url_for("admin_verification")
+            url_for("login")
         )
 
     cursor = connection.cursor(dictionary=True)
@@ -1974,342 +2029,73 @@ def verify_certificate():
     cursor.execute(
         """
         SELECT *
-        FROM certificates
-        WHERE certificate_id = %s
-        OR certificate_hash = %s
+        FROM verification_history
+        WHERE user_id = %s
+        ORDER BY id DESC
         """,
-        (
-            certificate_input,
-            certificate_input
-        )
-    )
-
-    certificate = cursor.fetchone()
-
-    # -------------------------------------------------
-    # CERTIFICATE NOT FOUND
-    # -------------------------------------------------
-
-    if certificate is None:
-
-        cursor.close()
-        connection.close()
-
-        flash(
-            "Certificate not found.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_verification")
-        )
-
-    # -------------------------------------------------
-    # CHECK CERTIFICATE STATUS
-    # -------------------------------------------------
-
-    if certificate["status"] == "Verified":
-        result = "Valid"
-
-    elif certificate["status"] == "Revoked":
-        result = "Invalid"
-
-    else:
-        result = "Pending"
-
-    blockchain_status = certificate[
-        "blockchain_status"
-    ]
-
-    # -------------------------------------------------
-    # SAVE VERIFICATION HISTORY
-    # -------------------------------------------------
-
-    cursor.execute(
-        """
-        INSERT INTO verification_logs
-        (
-            certificate_id,
-            verifier_name,
-            verifier_email,
-            result,
-            blockchain_status
-        )
-        VALUES
-        (%s, %s, %s, %s, %s)
-        """,
-        (
-            certificate["certificate_id"],
-            verifier_name,
-            verifier_email,
-            result,
-            blockchain_status
-        )
-    )
-
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
-    flash(
-        f"Certificate verification result: {result}",
-        "success" if result == "Valid" else "danger"
-    )
-
-    return redirect(
-        url_for("admin_verification")
-    )
-
-
-# =====================================================
-# VERIFICATION DETAILS
-# =====================================================
-
-@app.route(
-    "/admin/verifications/<int:verification_id>"
-)
-@admin_required
-def verification_details(verification_id):
-
-    connection = get_db_connection()
-
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_verification")
-        )
-
-    cursor = connection.cursor(dictionary=True)
-
-    cursor.execute(
-        """
-        SELECT
-            v.*,
-            c.certificate_hash,
-            c.course,
-            c.issue_date,
-            c.status AS certificate_status,
-            s.student_name,
-            s.email
-        FROM verification_logs v
-        JOIN certificates c
-            ON v.certificate_id = c.certificate_id
-        JOIN students s
-            ON c.student_id = s.student_id
-        WHERE v.verification_id = %s
-        """,
-        (verification_id,)
-    )
-
-    verification = cursor.fetchone()
-
-    cursor.close()
-    connection.close()
-
-    if verification is None:
-        return "Verification record not found", 404
-
-    return render_template(
-      "admin/verification_details.html",
-    verification=verification
-    )
-
-
-@app.route("/admin/profile/update", methods=["POST"])
-@admin_required
-def update_profile():
-
-    name = request.form.get("name")
-    email = request.form.get("email")
-
-    connection = get_db_connection()
-
-    if connection is None:
-        flash("Database connection failed.", "danger")
-        return redirect(url_for("admin_settings"))
-
-    cursor = connection.cursor()
-
-    try:
-        cursor.execute(
-            """
-            UPDATE admins
-            SET name = %s,
-                email = %s
-            WHERE admin_id = %s
-            """,
-            (name, email, session["admin_id"])
-        )
-
-        connection.commit()
-
-        # Update session values
-        session["admin_name"] = name
-        session["admin_email"] = email
-
-        flash("Profile updated successfully.", "success")
-
-    except Error as e:
-        connection.rollback()
-        print("Profile Update Error:", e)
-        flash("Error updating profile.", "danger")
-
-    finally:
-        cursor.close()
-        connection.close()
-
-    return redirect(url_for("admin_settings"))
-# =====================================================
-# BLOCKCHAIN RECORDS
-# =====================================================
-
-@app.route("/admin/blockchain")
-@admin_required
-def blockchain_records():
-
-    connection = get_db_connection()
-
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_dashboard")
-        )
-
-    cursor = connection.cursor(dictionary=True)
-
-    cursor.execute(
-        """
-        SELECT
-            b.*,
-            s.student_name
-        FROM blockchain_records b
-        JOIN certificates c
-            ON b.certificate_id = c.certificate_id
-        JOIN students s
-            ON c.student_id = s.student_id
-        ORDER BY b.created_at DESC
-        """
+        (session["user_id"],)
     )
 
     records = cursor.fetchall()
 
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM blockchain_records
-        """
-    )
-
-    total_records = cursor.fetchone()["total"]
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM blockchain_records
-        WHERE status = 'Confirmed'
-        """
-    )
-
-    confirmed_records = cursor.fetchone()["total"]
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM blockchain_records
-        WHERE status = 'Pending'
-        """
-    )
-
-    pending_records = cursor.fetchone()["total"]
-
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total
-        FROM blockchain_records
-        WHERE status = 'Failed'
-        """
-    )
-
-    failed_records = cursor.fetchone()["total"]
-
     cursor.close()
     connection.close()
 
+    valid_certificates = [
+        record
+        for record in records
+        if record["status"] == "VALID"
+        or record["status"] == "Valid"
+    ]
+
+    invalid_certificates = [
+        record
+        for record in records
+        if record["status"] == "INVALID"
+        or record["status"] == "Invalid"
+    ]
+
     return render_template(
-        "admin/blockchain_records.html",
-        blockchain_records=records,
-        total_records=total_records,
-        confirmed_records=confirmed_records,
-        pending_records=pending_records,
-        failed_records=failed_records
+        "verified_certificates.html",
+        valid_certificates=valid_certificates,
+        invalid_certificates=invalid_certificates
     )
 
 
-# =====================================================
-# BLOCKCHAIN RECORD DETAILS
-# =====================================================
+# =========================================================
+# ADMIN VERIFICATION HISTORY
+# =========================================================
 
-@app.route(
-    "/admin/blockchain/<int:record_id>"
-)
+@app.route("/admin/verifications")
 @admin_required
-def blockchain_record_details(record_id):
+def admin_verification():
 
     connection = get_db_connection()
-
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("blockchain_records")
-        )
 
     cursor = connection.cursor(dictionary=True)
 
     cursor.execute(
         """
-        SELECT
-            b.*,
-            c.course,
-            c.issue_date,
-            s.student_name,
-            s.email
-        FROM blockchain_records b
-        JOIN certificates c
-            ON b.certificate_id = c.certificate_id
-        JOIN students s
-            ON c.student_id = s.student_id
-        WHERE b.record_id = %s
-        """,
-        (record_id,)
+        SELECT *
+        FROM verification_history
+        ORDER BY id DESC
+        """
     )
 
-    record = cursor.fetchone()
+    verifications = cursor.fetchall()
 
     cursor.close()
     connection.close()
 
-    if record is None:
-        return "Blockchain record not found", 404
-
     return render_template(
-        "admin/blockchain_record_details.html",
-        record=record
+        "admin/verification.html",
+        verifications=verifications
     )
 
 
-# =====================================================
-# ADMIN PROFILE / SETTINGS
-# =====================================================
+# =========================================================
+# ADMIN SETTINGS
+# =========================================================
 
 @app.route("/admin/settings")
 @admin_required
@@ -2317,53 +2103,28 @@ def admin_settings():
 
     connection = get_db_connection()
 
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_dashboard")
-        )
-
     cursor = connection.cursor(dictionary=True)
 
-    try:
+    cursor.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id = %s
+        AND role = 'admin'
+        """,
+        (session["user_id"],)
+    )
 
-        cursor.execute(
-            """
-            SELECT *
-            FROM admins
-            WHERE admin_id = %s
-            """,
-            (session["admin_id"],)
-        )
+    admin = cursor.fetchone()
 
-        admin = cursor.fetchone()
-
-    except Error as e:
-
-        print("Settings Error:", e)
-
-        flash(
-            "Error loading settings.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_dashboard")
-        )
-
-    finally:
-
-        cursor.close()
-        connection.close()
+    cursor.close()
+    connection.close()
 
     if admin is None:
 
         flash(
             "Administrator record not found.",
-            "danger"
+            "error"
         )
 
         return redirect(
@@ -2374,108 +2135,41 @@ def admin_settings():
         "admin/setting.html",
         admin=admin
     )
-# =====================================================
-# CHANGE ADMIN PASSWORD
-# =====================================================
+
+
+# =========================================================
+# UPDATE ADMIN PROFILE
+# =========================================================
 
 @app.route(
-    "/admin/password/change",
+    "/admin/profile/update",
     methods=["POST"]
 )
 @admin_required
-def change_password():
+def update_profile():
 
-    current_password = request.form.get(
-        "current_password"
-    )
-
-    new_password = request.form.get(
-        "new_password"
-    )
-
-    confirm_password = request.form.get(
-        "confirm_password"
-    )
-
-    if new_password != confirm_password:
-
-        flash(
-            "New passwords do not match.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_settings")
-        )
+    name = request.form.get("name")
+    email = request.form.get("email")
 
     connection = get_db_connection()
 
-    if connection is None:
-        flash(
-            "Database connection failed.",
-            "danger"
-        )
-        return redirect(
-            url_for("admin_settings")
-        )
-
-    cursor = connection.cursor(dictionary=True)
+    cursor = connection.cursor()
 
     cursor.execute(
         """
-        SELECT password
-        FROM admins
-        WHERE admin_id = %s
-        """,
-        (session["admin_id"],)
-    )
+        UPDATE users
 
-    admin = cursor.fetchone()
+        SET
+            name = %s,
+            email = %s
 
-    if admin is None:
-
-        cursor.close()
-        connection.close()
-
-        flash(
-            "Administrator not found.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_settings")
-        )
-
-    if not check_password_hash(
-        admin["password"],
-        current_password
-    ):
-
-        cursor.close()
-        connection.close()
-
-        flash(
-            "Current password is incorrect.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("admin_settings")
-        )
-
-    new_password_hash = generate_password_hash(
-        new_password
-    )
-
-    cursor.execute(
-        """
-        UPDATE admins
-        SET password = %s
-        WHERE admin_id = %s
+        WHERE id = %s
+        AND role = 'admin'
         """,
         (
-            new_password_hash,
-            session["admin_id"]
+            name,
+            email,
+            session["user_id"]
         )
     )
 
@@ -2484,8 +2178,11 @@ def change_password():
     cursor.close()
     connection.close()
 
+    session["name"] = name
+    session["email"] = email
+
     flash(
-        "Password changed successfully.",
+        "Profile updated successfully.",
         "success"
     )
 
@@ -2494,35 +2191,102 @@ def change_password():
     )
 
 
-# =====================================================
-# LOGOUT
-# =====================================================
+# =========================================================
+# ADMIN LOGOUT
+# =========================================================
 
 @app.route("/admin/logout")
+def admin_logout():
+
+    session.clear()
+
+    flash(
+        "You have been logged out.",
+        "success"
+    )
+
+    return redirect(
+        url_for("login")
+    )
+
+
+# =========================================================
+# STUDENT LOGOUT
+# =========================================================
+
+@app.route("/student/logout")
+def student_logout():
+
+    session.clear()
+
+    flash(
+        "You have been logged out.",
+        "success"
+    )
+
+    return redirect(
+        url_for("login")
+    )
+
+
+# =========================================================
+# GENERAL LOGOUT
+# =========================================================
+
+@app.route("/logout")
 def logout():
 
     session.clear()
 
     flash(
-        "You have been logged out successfully.",
+        "You have been logged out.",
         "success"
     )
 
     return redirect(
-        url_for("admin_login")
+        url_for("login")
     )
 
-@app.route('/student/logout')
-def student_logout():
 
-    session.clear()
+# =========================================================
+# BLOCKCHAIN TEST
+# =========================================================
 
-    flash("You have been logged out.", "success")
+@app.route("/blockchain-test")
+def blockchain_test():
 
-    return redirect(url_for('student_login'))
-# =====================================================
-# APPLICATION RUN
-# =====================================================
+    try:
+
+        connected = w3.is_connected()
+
+        chain_id = w3.eth.chain_id
+
+        code = w3.eth.get_code(
+            Web3.to_checksum_address(
+                CONTRACT_ADDRESS
+            )
+        )
+
+        return {
+            "connected": connected,
+            "chain_id": chain_id,
+            "contract_address": CONTRACT_ADDRESS,
+            "contract_deployed": (
+                len(code) > 0
+            )
+        }
+
+    except Exception as e:
+
+        return {
+            "connected": False,
+            "error": str(e)
+        }
+
+
+# =========================================================
+# RUN APPLICATION
+# =========================================================
 
 if __name__ == "__main__":
 
