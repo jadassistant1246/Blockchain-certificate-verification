@@ -14,7 +14,7 @@ from mysql.connector import Error
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from web3 import Web3
-
+from PyPDF2 import PdfReader
 import re
 import io
 
@@ -75,7 +75,7 @@ def get_db_connection():
 
 GANACHE_URL = "http://127.0.0.1:7545"
 
-CONTRACT_ADDRESS = "0x460deEaE67225f91642f2626636206Cc5259F649"
+CONTRACT_ADDRESS = "0x5b6e96E9eBcc8C6eef0AcAd8f1e9d556CB2E2365"
 
 
 # Connect to Ganache
@@ -285,11 +285,11 @@ def admin_required(function):
     def wrapper(*args, **kwargs):
 
         if "user_id" not in session:
-            return redirect(url_for("login"))
+            return redirect(url_for("admin_login"))
 
         if session.get("role") != "admin":
             flash("Admin access required.", "error")
-            return redirect(url_for("login"))
+            return redirect(url_for("admin_login"))
 
         return function(*args, **kwargs)
 
@@ -309,11 +309,11 @@ def home():
 
 
 # =========================================================
-# REGISTER
+#  STUDENT REGISTER
 # =========================================================
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
+@app.route("/student/register", methods=["GET", "POST"])
+def student_register():
 
     if request.method == "POST":
 
@@ -326,7 +326,7 @@ def register():
 
             flash("Please fill all required fields.", "error")
 
-            return redirect(url_for("register"))
+            return redirect(url_for("student_register"))
 
         # Do not allow public users to create admin accounts
         if role not in ["student", "verifier"]:
@@ -339,7 +339,7 @@ def register():
 
             flash("Database connection failed.", "error")
 
-            return redirect(url_for("register"))
+            return redirect(url_for("student_register"))
 
         cursor = connection.cursor(dictionary=True)
 
@@ -360,7 +360,7 @@ def register():
 
                 flash("Email already registered.", "error")
 
-                return redirect(url_for("register"))
+                return redirect(url_for("student_register"))
 
             # Keep password compatible with your current database.
             cursor.execute(
@@ -390,7 +390,7 @@ def register():
                 "success"
             )
 
-            return redirect(url_for("login"))
+            return redirect(url_for("student_login"))
 
         except Error as e:
 
@@ -403,7 +403,7 @@ def register():
                 "error"
             )
 
-            return redirect(url_for("register"))
+            return redirect(url_for("student_register"))
 
         finally:
 
@@ -414,10 +414,10 @@ def register():
 
 
 # =========================================================
-# LOGIN
+# STUDENT LOGIN
 # =========================================================
-@app.route("/login", methods=["GET", "POST"])
-def login():
+@app.route("/student/login", methods=["GET", "POST"])
+def student_login():
 
     if request.method == "POST":
 
@@ -555,6 +555,79 @@ def login():
     return render_template(
         "student/login.html"
     )
+
+# =========================================================
+# ADMIN LOGIN
+# =========================================================
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+
+        connection = get_db_connection()
+
+        if connection is None:
+            flash("Database connection failed.", "error")
+            return render_template("admin/login.html")
+
+        cursor = connection.cursor(dictionary=True)
+
+        try:
+            cursor.execute(
+                """
+                SELECT id, name, email, password, role
+                FROM users
+                WHERE email = %s AND role = 'admin'
+                """,
+                (email,)
+            )
+
+            user = cursor.fetchone()
+
+        except Error as e:
+            print("Admin login error:", e)
+            user = None
+
+        finally:
+            cursor.close()
+            connection.close()
+
+        if user is None:
+            flash("Invalid admin email or password.", "error")
+            return render_template("admin/login.html")
+
+        stored_password = user["password"]
+
+        if stored_password == password:
+            password_correct = True
+        else:
+            try:
+                password_correct = check_password_hash(
+                    stored_password,
+                    password
+                )
+            except Exception:
+                password_correct = False
+
+        if not password_correct:
+            flash("Invalid admin email or password.", "error")
+            return render_template("admin/login.html")
+
+        session.clear()
+
+        session["user_id"] = user["id"]
+        session["name"] = user["name"]
+        session["email"] = user["email"]
+        session["role"] = user["role"]
+
+        flash("Admin login successful!", "success")
+
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin/login.html")
 # =========================================================
 # ADMIN REGISTRATION
 # =========================================================
@@ -650,7 +723,7 @@ def admin_register():
             )
 
             return redirect(
-                url_for("login")
+                url_for("admin_login")
             )
 
         except Error as e:
@@ -669,8 +742,7 @@ def admin_register():
             cursor.close()
             connection.close()
 
-    return render_template("student/register.html")
-
+    return render_template("admin/register.html")
 
 # =========================================================
 # STUDENT DASHBOARD
@@ -682,13 +754,13 @@ def student_dashboard():
     if "user_id" not in session:
 
         return redirect(
-            url_for("login")
+            url_for("student_login")
         )
 
     if session.get("role") != "student":
 
         return redirect(
-            url_for("login")
+            url_for("student_login")
         )
 
     connection = get_db_connection()
@@ -701,7 +773,7 @@ def student_dashboard():
         )
 
         return redirect(
-            url_for("login")
+            url_for("student_login")
         )
 
     cursor = connection.cursor(dictionary=True)
@@ -747,13 +819,13 @@ def view_certificate(certificate_id):
     if "user_id" not in session:
 
         return redirect(
-            url_for("login")
+            url_for("student_login")
         )
 
     if session.get("role") != "student":
 
         return redirect(
-            url_for("login")
+            url_for("student_login")
         )
 
     connection = get_db_connection()
@@ -824,7 +896,7 @@ def admin_dashboard():
         )
 
         return redirect(
-            url_for("login")
+            url_for("admin_login")
         )
 
     cursor = connection.cursor(dictionary=True)
@@ -895,7 +967,7 @@ def admin_dashboard():
         connection.close()
 
     return render_template(
-        "admin_dashboard.html",
+        "admin/dashboard.html",
         total_students=total_students,
         total_certificates=total_certificates,
         verified_certificates=verified_certificates,
@@ -915,50 +987,221 @@ def admin_students():
     connection = get_db_connection()
 
     if connection is None:
-
-        flash(
-            "Database connection failed.",
-            "error"
-        )
-
-        return redirect(
-            url_for("admin_dashboard")
-        )
+        flash("Database connection failed.", "danger")
+        return redirect(url_for("admin_dashboard"))
 
     cursor = connection.cursor(dictionary=True)
 
-    cursor.execute(
-        """
-        SELECT
-            u.id,
-            u.name,
-            u.email,
+    try:
 
-            (
-                SELECT COUNT(*)
-                FROM certificates c
-                WHERE c.student_id = u.id
-            ) AS certificates_count
+        # --------------------------------
+        # GET STUDENTS + CERTIFICATE COUNT
+        # --------------------------------
+        cursor.execute("""
+            SELECT
+                s.student_id AS student_id,
+                s.student_name,
+                s.email,
+                s.phone,
+                s.department,
+                s.course,
+                s.enrollment_no,
+                s.admission_year,
+                s.status,
+                s.created_at,
+                COUNT(c.id) AS certificate_count
+            FROM students s
+            LEFT JOIN certificates c
+                ON s.student_id = c.student_id
+            GROUP BY
+                s.student_id,
+                s.student_name,
+                s.email,
+                s.phone,
+                s.department,
+                s.course,
+                s.enrollment_no,
+                s.admission_year,
+                s.status,
+                s.created_at
+            ORDER BY s.student_id DESC
+        """)
 
-        FROM users u
+        students = cursor.fetchall()
 
-        WHERE u.role = 'student'
+        # --------------------------------
+        # TOTAL STUDENTS
+        # --------------------------------
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM students
+        """)
 
-        ORDER BY u.id DESC
-        """
-    )
+        total_students = cursor.fetchone()["total"]
 
-    students = cursor.fetchall()
+        # --------------------------------
+        # VERIFIED STUDENTS
+        # --------------------------------
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM students
+            WHERE status = 'Verified'
+        """)
 
-    cursor.close()
-    connection.close()
+        verified_students = cursor.fetchone()["total"]
 
+        # --------------------------------
+        # PENDING STUDENTS
+        # --------------------------------
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM students
+            WHERE status = 'Pending'
+        """)
+
+        pending_students = cursor.fetchone()["total"]
+
+        # --------------------------------
+        # INACTIVE STUDENTS
+        # --------------------------------
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM students
+            WHERE status = 'Inactive'
+        """)
+
+        inactive_students = cursor.fetchone()["total"]
+
+        # --------------------------------
+        # TOTAL CERTIFICATES
+        # --------------------------------
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM certificates
+        """)
+
+        total_certificates = cursor.fetchone()["total"]
+
+    except Error as e:
+
+        print("Admin students error:", e)
+
+        flash("Unable to load students.", "danger")
+
+        students = []
+        total_students = 0
+        verified_students = 0
+        pending_students = 0
+        inactive_students = 0
+        total_certificates = 0
+
+    finally:
+
+        cursor.close()
+        connection.close()
+
+    # --------------------------------
+    # SEND DATA TO TEMPLATE
+    # --------------------------------
     return render_template(
         "admin/student.html",
-        students=students
+        students=students,
+        total_students=total_students,
+        verified_students=verified_students,
+        pending_students=pending_students,
+        inactive_students=inactive_students,
+        total_certificates=total_certificates
     )
+# =====================================================
+# CHANGE ADMIN PASSWORD
+# =====================================================
 
+@app.route("/admin/password/change", methods=["POST"])
+@admin_required
+def change_password():
 
+    current_password = request.form.get("current_password", "")
+    new_password = request.form.get("new_password", "")
+    confirm_password = request.form.get("confirm_password", "")
+
+    if new_password != confirm_password:
+        flash("New passwords do not match.", "danger")
+        return redirect(url_for("admin_settings"))
+
+    connection = get_db_connection()
+
+    if connection is None:
+        flash("Database connection failed.", "danger")
+        return redirect(url_for("admin_settings"))
+
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+
+        cursor.execute(
+            """
+            SELECT password
+            FROM users
+            WHERE id = %s
+            AND role = 'admin'
+            """,
+            (session["user_id"],)
+        )
+
+        admin = cursor.fetchone()
+
+        if admin is None:
+            flash("Administrator not found.", "danger")
+            return redirect(url_for("admin_settings"))
+
+        if not check_password_hash(
+            admin["password"],
+            current_password
+        ):
+            flash("Current password is incorrect.", "danger")
+            return redirect(url_for("admin_settings"))
+
+        new_password_hash = generate_password_hash(
+            new_password
+        )
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET password = %s
+            WHERE id = %s
+            AND role = 'admin'
+            """,
+            (
+                new_password_hash,
+                session["user_id"]
+            )
+        )
+
+        connection.commit()
+
+        flash(
+            "Password changed successfully.",
+            "success"
+        )
+
+    except Error as e:
+
+        connection.rollback()
+
+        print("Password change error:", e)
+
+        flash(
+            "Failed to change password.",
+            "danger"
+        )
+
+    finally:
+
+        cursor.close()
+        connection.close()
+
+    return redirect(url_for("admin_settings"))
 # =========================================================
 # ADMIN STUDENT DETAILS
 # =========================================================
@@ -1004,7 +1247,7 @@ def admin_student_details(student_id):
 
     cursor.close()
     connection.close()
-
+    
     return render_template(
         "admin/student_details.html",
         student=student,
@@ -1441,7 +1684,64 @@ def certificate_details(certificate_id):
         certificate=certificate
     )
 
+#=====================================================
+# REVOKED CERTIFICATES
+# =====================================================
 
+# =====================================================
+# REVOKED CERTIFICATES
+# =====================================================
+
+@app.route("/admin/revoked_certificate")
+@admin_required
+def revoked_certificates():
+
+    connection = get_db_connection()
+
+    if connection is None:
+        flash("Database connection failed.", "danger")
+        return redirect(url_for("admin_dashboard"))
+
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                c.*,
+                u.name AS student_name,
+                u.email AS student_email
+            FROM certificates c
+            JOIN users u
+                ON c.student_id = u.id
+            WHERE c.blockchain_status = 'Revoked'
+            ORDER BY c.id DESC
+        """)
+
+        certificates = cursor.fetchall()
+
+        cursor.execute("""
+            SELECT COUNT(*) AS total
+            FROM certificates
+            WHERE blockchain_status = 'Revoked'
+        """)
+
+        total_revoked = cursor.fetchone()["total"]
+
+    except Error as e:
+        print("Revoked certificates error:", e)
+        flash("Unable to load revoked certificates.", "danger")
+        certificates = []
+        total_revoked = 0
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    return render_template(
+        "admin/revoked_certificate.html",
+        certificates=certificates,
+        total_revoked=total_revoked
+    )
 # =========================================================
 # REVOKE CERTIFICATE
 # =========================================================
@@ -1511,6 +1811,148 @@ def revoke_certificate(certificate_id):
         )
     )
 
+# =====================================================
+# BLOCKCHAIN RECORDS
+# =====================================================
+
+@app.route("/admin/blockchain_records")
+@admin_required
+def blockchain_records():
+
+    connection = get_db_connection()
+
+    if connection is None:
+        flash(
+            "Database connection failed.",
+            "danger"
+        )
+        return redirect(
+            url_for("admin_dashboard")
+        )
+
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT
+            b.*,
+            s.student_name
+        FROM blockchain_records b
+        JOIN certificates c
+            ON b.certificate_id = c.certificate_id
+        JOIN students s
+            ON c.student_id = s.student_id
+        ORDER BY b.created_at DESC
+        """
+    )
+
+    records = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM blockchain_records
+        """
+    )
+
+    total_records = cursor.fetchone()["total"]
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM blockchain_records
+        WHERE status = 'Confirmed'
+        """
+    )
+
+    confirmed_records = cursor.fetchone()["total"]
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM blockchain_records
+        WHERE status = 'Pending'
+        """
+    )
+
+    pending_records = cursor.fetchone()["total"]
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM blockchain_records
+        WHERE status = 'Failed'
+        """
+    )
+
+    failed_records = cursor.fetchone()["total"]
+
+    cursor.close()
+    connection.close()
+
+    return render_template(
+        "admin/blockchain_records.html",
+        blockchain_records=records,
+        total_records=total_records,
+        confirmed_records=confirmed_records,
+        pending_records=pending_records,
+        failed_records=failed_records
+    )
+
+# =====================================================
+# BLOCKCHAIN RECORD DETAILS
+# =====================================================
+
+@app.route(
+    "/admin/blockchain/<int:record_id>"
+)
+@admin_required
+def blockchain_record_details(record_id):
+
+    connection = get_db_connection()
+
+    if connection is None:
+        flash(
+            "Database connection failed.",
+            "danger"
+        )
+        return redirect(
+            url_for("blockchain_records")
+        )
+
+    cursor = connection.cursor(dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT
+            b.*,
+            c.course,
+            c.issue_date,
+            s.student_name,
+            s.email
+        FROM blockchain_records b
+        JOIN certificates c
+            ON b.certificate_id = c.certificate_id
+        JOIN students s
+            ON c.student_id = s.student_id
+        WHERE b.record_id = %s
+        """,
+        (record_id,)
+    )
+
+    record = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if record is None:
+        return "Blockchain record not found", 404
+
+    return render_template(
+        "admin/blockchain_record_details.html",
+        record=record
+    )
+
 
 # =========================================================
 # VERIFY CERTIFICATE
@@ -1523,7 +1965,6 @@ def revoke_certificate(certificate_id):
 def verify_certificate():
 
     if request.method == "GET":
-
         return render_template(
             "verify.html"
         )
@@ -1538,6 +1979,22 @@ def verify_certificate():
     )
 
     # =====================================================
+    # PDF CERTIFICATE DATA
+    # =====================================================
+
+    pdf_certificate = {
+        "certificate_id": "",
+        "student_name": "",
+        "course_name": "",
+        "institution_name": "",
+        "certificate_hash": "",
+        "issue_date": ""
+    }
+
+    pdf_text = ""
+    pdf_bytes = None
+
+    # =====================================================
     # 1. PDF TEXT SEARCH
     # =====================================================
 
@@ -1547,43 +2004,23 @@ def verify_certificate():
 
             pdf_bytes = uploaded_file.read()
 
-            # -------------------------------------------------
-            # Extract PDF text
-            # -------------------------------------------------
+            reader = PdfReader(
+                io.BytesIO(pdf_bytes)
+            )
 
-            if fitz is not None:
+            for page in reader.pages:
 
-                document = fitz.open(
-                    stream=pdf_bytes,
-                    filetype="pdf"
-                )
+                text = page.extract_text()
 
-                pdf_text = ""
+                if text:
+                    pdf_text += text + "\n"
 
-                for page in document:
-
-                    pdf_text += page.get_text()
-
-                document.close()
-
-            else:
-
-                reader = PdfReader(
-                    io.BytesIO(pdf_bytes)
-                )
-
-                pdf_text = ""
-
-                for page in reader.pages:
-
-                    text = page.extract_text()
-
-                    if text:
-
-                        pdf_text += text
+            print("========== PDF DATA ==========")
+            print(pdf_text)
+            print("========== END PDF DATA ==========")
 
             # -------------------------------------------------
-            # Search Certificate ID
+            # Certificate ID
             # -------------------------------------------------
 
             match = re.search(
@@ -1601,6 +2038,88 @@ def verify_certificate():
                     certificate_id
                 )
 
+                pdf_certificate["certificate_id"] = certificate_id
+
+            # -------------------------------------------------
+            # Student Name
+            # -------------------------------------------------
+
+            student_match = re.search(
+                r"(?:Student\s*Name|Student|Name)\s*[:=\-]\s*([^\n]+)",
+                pdf_text,
+                re.IGNORECASE
+            )
+
+            if student_match:
+
+                pdf_certificate["student_name"] = (
+                    student_match.group(1).strip()
+                )
+
+            # -------------------------------------------------
+            # Course Name
+            # -------------------------------------------------
+
+            course_match = re.search(
+                r"(?:Course\s*Name|Course)\s*[:=\-]\s*([^\n]+)",
+                pdf_text,
+                re.IGNORECASE
+            )
+
+            if course_match:
+
+                pdf_certificate["course_name"] = (
+                    course_match.group(1).strip()
+                )
+
+            # -------------------------------------------------
+            # Institution Name
+            # -------------------------------------------------
+
+            institution_match = re.search(
+                r"(?:Institution\s*Name|Institution|College|University)\s*[:=\-]\s*([^\n]+)",
+                pdf_text,
+                re.IGNORECASE
+            )
+
+            if institution_match:
+
+                pdf_certificate["institution_name"] = (
+                    institution_match.group(1).strip()
+                )
+
+            # -------------------------------------------------
+            # Certificate Hash
+            # -------------------------------------------------
+
+            hash_match = re.search(
+                r"(?:Certificate\s*Hash|Hash)\s*[:=\-]\s*([A-Za-z0-9_-]+)",
+                pdf_text,
+                re.IGNORECASE
+            )
+
+            if hash_match:
+
+                pdf_certificate["certificate_hash"] = (
+                    hash_match.group(1).strip()
+                )
+
+            # -------------------------------------------------
+            # Issue Date
+            # -------------------------------------------------
+
+            date_match = re.search(
+                r"(?:Issue\s*Date|Issued\s*Date|Date)\s*[:=\-]\s*([^\n]+)",
+                pdf_text,
+                re.IGNORECASE
+            )
+
+            if date_match:
+
+                pdf_certificate["issue_date"] = (
+                    date_match.group(1).strip()
+                )
+
         except Exception as e:
 
             print(
@@ -1612,7 +2131,7 @@ def verify_certificate():
     # 2. IF NO ID -> QR SCAN
     # =====================================================
 
-    if not certificate_id and uploaded_file:
+    if not certificate_id and uploaded_file and pdf_bytes:
 
         if (
             fitz is not None
@@ -1671,7 +2190,7 @@ def verify_certificate():
                             data
                         )
 
-                        # QR contains plain certificate ID
+                        # QR contains certificateId
                         qr_match = re.search(
                             r"certificateId\s*['\"]?\s*[:=]\s*['\"]?([A-Za-z0-9_-]+)",
                             data,
@@ -1681,12 +2200,12 @@ def verify_certificate():
                         if qr_match:
 
                             certificate_id = (
-                                qr_match.group(1)
+                                qr_match.group(1).strip()
                             )
 
                         else:
 
-                            # If QR itself is just the ID
+                            # QR itself is just the ID
                             simple_match = re.fullmatch(
                                 r"[A-Za-z0-9_-]+",
                                 data.strip()
@@ -1694,11 +2213,17 @@ def verify_certificate():
 
                             if simple_match:
 
-                                certificate_id = data.strip()
+                                certificate_id = (
+                                    data.strip()
+                                )
 
-                    if certificate_id:
+                        if certificate_id:
 
-                        break
+                            pdf_certificate[
+                                "certificate_id"
+                            ] = certificate_id
+
+                            break
 
                 document.close()
 
@@ -1727,6 +2252,9 @@ def verify_certificate():
         certificate_id
     )
 
+    # Make sure ID is stored
+    pdf_certificate["certificate_id"] = certificate_id
+
     # =====================================================
     # 4. BLOCKCHAIN CHECK
     # =====================================================
@@ -1736,7 +2264,8 @@ def verify_certificate():
         return render_template(
             "verification_result.html",
             status="CANNOT VERIFY",
-            certificate=None,
+            certificate=pdf_certificate,
+            certificate_id=certificate_id,
             message="Blockchain network is not connected."
         )
 
@@ -1771,7 +2300,8 @@ def verify_certificate():
         return render_template(
             "verification_result.html",
             status="CANNOT VERIFY",
-            certificate=None,
+            certificate=pdf_certificate,
+            certificate_id=certificate_id,
             message="Unable to verify certificate on blockchain."
         )
 
@@ -1781,16 +2311,21 @@ def verify_certificate():
 
     if not exists:
 
+        print(
+            "CERTIFICATE NOT FOUND ON BLOCKCHAIN"
+        )
+
         save_verification_history(
             certificate_id,
-            None,
+            pdf_certificate,
             "Invalid"
         )
 
         return render_template(
             "verification_result.html",
             status="INVALID",
-            certificate=None,
+            certificate=pdf_certificate,
+            certificate_id=certificate_id,
             message="Certificate was not found on blockchain."
         )
 
@@ -1831,6 +2366,7 @@ def verify_certificate():
 
             "revoked":
                 blockchain_certificate[7]
+
         }
 
     except Exception as e:
@@ -1843,22 +2379,18 @@ def verify_certificate():
         return render_template(
             "verification_result.html",
             status="CANNOT VERIFY",
-            certificate=None,
+            certificate=pdf_certificate,
+            certificate_id=certificate_id,
             message="Certificate data could not be retrieved."
         )
-
     # =====================================================
-    # 7. FINAL STATUS
+    # 7.  FINAL STATUS
     # =====================================================
-
+        
     if valid and not certificate["revoked"]:
-
         status = "VALID"
-
     else:
-
         status = "INVALID"
-
     # =====================================================
     # 8. SAVE HISTORY
     # =====================================================
@@ -1877,9 +2409,9 @@ def verify_certificate():
         "verification_result.html",
         status=status,
         certificate=certificate,
+        certificate_id=certificate_id,
         message="Certificate verification completed."
     )
-
 
 # =========================================================
 # SAVE VERIFICATION HISTORY
@@ -2008,7 +2540,7 @@ def verified_certificates():
     if "user_id" not in session:
 
         return redirect(
-            url_for("login")
+            url_for("student_login")
         )
 
     connection = get_db_connection()
@@ -2021,7 +2553,7 @@ def verified_certificates():
         )
 
         return redirect(
-            url_for("login")
+            url_for("student_login")
         )
 
     cursor = connection.cursor(dictionary=True)
@@ -2037,7 +2569,6 @@ def verified_certificates():
     )
 
     records = cursor.fetchall()
-
     cursor.close()
     connection.close()
 
@@ -2056,7 +2587,7 @@ def verified_certificates():
     ]
 
     return render_template(
-        "verified_certificates.html",
+        "student/verified_certificates.html",
         valid_certificates=valid_certificates,
         invalid_certificates=invalid_certificates
     )
@@ -2206,10 +2737,12 @@ def admin_logout():
     )
 
     return redirect(
-        url_for("login")
+        url_for("admin_login")
     )
-
-
+#general login
+@app.route("/login")
+def login():
+    return redirect(url_for("student_login"))
 # =========================================================
 # STUDENT LOGOUT
 # =========================================================
@@ -2225,26 +2758,7 @@ def student_logout():
     )
 
     return redirect(
-        url_for("login")
-    )
-
-
-# =========================================================
-# GENERAL LOGOUT
-# =========================================================
-
-@app.route("/logout")
-def logout():
-
-    session.clear()
-
-    flash(
-        "You have been logged out.",
-        "success"
-    )
-
-    return redirect(
-        url_for("login")
+        url_for("student_login")
     )
 
 

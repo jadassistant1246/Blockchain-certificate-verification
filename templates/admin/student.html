@@ -495,7 +495,7 @@
             </li>
 
             <li>
-                <a href="{{ url_for('logout') }}">
+                <a href="{{ url_for('admin_logout') }}">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Logout</span>
                 </a>
@@ -545,7 +545,7 @@
 
             <!-- ADD STUDENT -->
 
-            <a href="{{ url_for('add_student') }}" class="add-btn">
+            <a href="{{ url_for('admin_students') }}" class="add-btn">
                 + Add Student
             </a>
 
@@ -594,7 +594,7 @@
                 <h3>Total Certificates</h3>
 
                 <div class="stat-number">
-                    {{ students|sum(attribute='certificate_count') }}
+                    {{ total_certificates }}
                 </div>
 
             </div>

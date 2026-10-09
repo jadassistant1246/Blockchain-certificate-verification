@@ -197,60 +197,84 @@
         {% endwith %}
 
         <!-- Registration Form -->
-        <!-- Registration Form -->
-<form action="{{ url_for('register') }}" method="POST" autocomplete="off">
+        <form action="{{ url_for('student_register') }}" method="POST" autocomplete="off">
 
-    <!-- Name -->
-    <div class="form-group">
-        <label for="name">Full Name</label>
+            <!-- Name -->
+            <div class="form-group">
+                <label for="name">Full Name</label>
 
-        <input
-            type="text"
-            id="name"
-            name="name"
-            placeholder="Enter your full name"
-            required
-        >
-    </div>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    required
+                >
+            </div>
 
-    <!-- Email -->
-    <div class="form-group">
-        <label for="email">Email</label>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
 
-        <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Enter your email"
-            required
-        >
-    </div>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                >
+            </div>
 
-    <!-- Password -->
-    <div class="form-group">
-        <label for="password">Password</label>
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Password</label>
 
-        <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Create a password"
-            required
-        >
-    </div>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Create a password"
+                    required
+                >
+            </div>
 
-    <!-- Register Button -->
-    <button type="submit" class="register-btn">
-        Create Account
-    </button>
+            <!-- Role -->
+            <div class="form-group">
+                <label for="role">Register As</label>
 
-</form>
+                <select id="role" name="role" required>
+
+                    <option value="">
+                        Select Role
+                    </option>
+
+                    <option value="student">
+                        Student
+                    </option>
+
+                    <option value="admin">
+                        Admin / Institution
+                    </option>
+
+                    <option value="verifier">
+                        Verifier
+                    </option>
+
+                </select>
+            </div>
+
+            <!-- Register Button -->
+            <button type="submit" class="register-btn">
+                Create Account
+            </button>
+
+        </form>
 
         <!-- Login Link -->
         <div class="login-link">
             Already have an account?
 
-            <a href="{{ url_for('login') }}">
+            <a href="{{ url_for('student_login') }}">
                 Login
             </a>
         </div>

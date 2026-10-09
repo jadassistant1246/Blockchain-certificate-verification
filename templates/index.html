@@ -869,7 +869,7 @@
                  After login, Flask checks the user's role.
             -->
 
-            <a href="{{ url_for('login') }}" class="admin-btn">
+            <a href="{{ url_for('admin_login') }}" class="admin-btn">
 
                 <i class="fas fa-user-shield"></i>
 
@@ -916,7 +916,7 @@
 
                 <div class="hero-buttons">
 
-                    <a href="{{ url_for('login') }}" class="primary-btn">
+                    <a href="{{ url_for('student_login') }}" class="primary-btn">
 
                         <i class="fas fa-right-to-bracket"></i>
 
@@ -1455,7 +1455,7 @@
 
             </div>
 
-            <a href="{{ url_for('login') }}" class="cta-button">
+            <a href="{{ url_for('admin_login') }}" class="cta-button">
 
                 Open Admin Portal
 
@@ -1522,11 +1522,11 @@
 
                 <h4>Portal</h4>
 
-                <a href="{{ url_for('login') }}">
+                <a href="{{ url_for('student_login') }}">
                     Login
                 </a>
 
-                <a href="{{ url_for('register') }}">
+                <a href="{{ url_for('student_register') }}">
                     Student Registration
                 </a>
 

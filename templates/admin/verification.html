@@ -884,8 +884,11 @@
                             <div class="certificate-hash">
 
                                 Hash:
+                                {% if verification.certificate_hash %}
                                 {{ verification.certificate_hash[:18] }}...
-
+                                {% else %}
+                                  N/A
+                                {% endif %}
                             </div>
 
                         </td>
@@ -990,12 +993,8 @@
                         <td>
 
                             <a
-                                href="{{ url_for(
-                                    'verification_details',
-                                    verification_id=verification.verification_id
-                                ) }}"
-                                class="action-btn"
-                            >
+                                href="{{ url_for('certificate_details', certificate_id=verification.certificate_id) }}
+                                class="action-btn">
 
                                 View Details
 
