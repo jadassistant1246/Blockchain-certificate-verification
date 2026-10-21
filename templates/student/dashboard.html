@@ -37,6 +37,54 @@
         font-weight: bold;
     }
 
+/* Student information section */
+.student-information {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+    margin-bottom: 25px;
+}
+
+.student-information h2,
+.certificates-section h2 {
+    font-size: 21px;
+    color: #1e293b;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #eaf0f8;
+}
+
+/* Student details grid */
+.student-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.info-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    padding: 18px;
+    overflow-wrap: anywhere;
+}
+
+.info-item label {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+
+.info-item p {
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: 600;
+}
+
     .container {
         width: 90%;
         max-width: 1000px;
@@ -161,7 +209,7 @@
     <div class="card">
 
         <h1>
-            Welcome, {{ session["name"] }}!
+          Welcome, {{ session.get("student_name", "Student") }}!
         </h1>
 
         <p>
@@ -171,37 +219,34 @@
     </div>
 
 
-    <!-- Student Information -->
-    <div class="card">
 
-        <h2>Student Information</h2>
+<!-- Student Information -->
+<div class="student-information">
+    <h2>Student Information</h2>
 
-        <div class="info">
+    {% if student %}
+    <div class="student-info-grid">
 
-            <div class="info-box">
-                <div class="label">Student ID</div>
-                <div class="value">
-                    {{ session["user_id"] }}
-                </div>
-            </div>
+        <div class="info-item">
+            <label>Student ID</label>
+            <p>{{ student.student_id }}</p>
+        </div>
 
-            <div class="info-box">
-                <div class="label">Student Name</div>
-                <div class="value">
-                    {{ session["name"] }}
-                </div>
-            </div>
+        <div class="info-item">
+            <label>Student Name</label>
+            <p>{{ student.student_name }}</p>
+        </div>
 
-            <div class="info-box">
-                <div class="label">Email</div>
-                <div class="value">
-                    {{ session["email"] }}
-                </div>
-            </div>
-
+        <div class="info-item">
+            <label>Email</label>
+            <p>{{ student.email }}</p>
         </div>
 
     </div>
+    {% else %}
+        <p>Student information is unavailable.</p>
+    {% endif %}
+</div>
 
 
     <!-- My Certificates -->

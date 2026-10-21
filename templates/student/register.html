@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Register | BlockCert</title>
+    <title>Student Registration - BlockCert</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
 
     <style>
         * {
@@ -25,52 +22,70 @@
         body {
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
+            background: linear-gradient(135deg, #eef4ff, #f8fbff);
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 30px 15px;
-            background: linear-gradient(135deg, #eef4ff, #f8fbff);
         }
 
         .register-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 900px;
             background: white;
-            padding: 35px;
             border-radius: 18px;
             box-shadow: 0 10px 35px rgba(0, 0, 0, 0.10);
+            overflow: hidden;
         }
 
-        .logo {
+        .header {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
             text-align: center;
-            font-size: 45px;
-            margin-bottom: 10px;
+            padding: 30px 20px;
         }
 
-        h1 {
-            text-align: center;
-            color: #1e293b;
-            margin-bottom: 8px;
+        .header h1 {
             font-size: 28px;
+            margin-bottom: 8px;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #64748b;
+        .header p {
             font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 35px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
             margin-bottom: 25px;
         }
 
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
         .form-group {
-            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
 
         label {
-            display: block;
-            margin-bottom: 8px;
-            color: #334155;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 8px;
         }
 
         input,
@@ -82,8 +97,8 @@
             font-family: 'Poppins', sans-serif;
             font-size: 14px;
             outline: none;
-            background: white;
             transition: 0.2s;
+            background: white;
         }
 
         input:focus,
@@ -92,8 +107,19 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
         }
 
+        .required {
+            color: #dc2626;
+        }
+
+        .button-container {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
         .register-btn {
             width: 100%;
+            max-width: 400px;
             padding: 14px;
             border: none;
             border-radius: 8px;
@@ -103,7 +129,6 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 5px;
             transition: 0.2s;
         }
 
@@ -114,8 +139,8 @@
         .login-link {
             text-align: center;
             margin-top: 22px;
-            color: #64748b;
             font-size: 14px;
+            color: #64748b;
         }
 
         .login-link a {
@@ -128,12 +153,15 @@
             text-decoration: underline;
         }
 
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
         .alert {
             padding: 12px 15px;
             border-radius: 8px;
             font-size: 14px;
-            margin-bottom: 15px;
-            text-align: center;
+            margin-bottom: 10px;
         }
 
         .alert-success {
@@ -146,27 +174,20 @@
             color: #991b1b;
         }
 
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
+        @media (max-width: 700px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
 
-        .alert-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
+            .form-group.full-width {
+                grid-column: auto;
+            }
 
-        .alert-info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        @media (max-width: 500px) {
-            .register-container {
+            .form-container {
                 padding: 25px 20px;
             }
 
-            h1 {
+            .header h1 {
                 font-size: 24px;
             }
         }
@@ -175,112 +196,167 @@
 
 <body>
 
-    <div class="register-container">
+<div class="register-container">
 
-        <div class="logo">🎓</div>
+    <div class="header">
+        <h1>Student Registration</h1>
+        <p>Create your BlockCert student account</p>
+    </div>
 
-        <h1>Create Account</h1>
+    <div class="form-container">
 
-        <p class="subtitle">
-            Blockchain Certificate Verification
-        </p>
-
-        <!-- Flask Flash Messages -->
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
 
+        <div class="section-title">
+            Student Information
+        </div>
+
         <!-- Registration Form -->
-        <form action="{{ url_for('student_register') }}" method="POST" autocomplete="off">
+        <form action="{{ url_for('student_register') }}" method="POST">
 
-            <!-- Name -->
-            <div class="form-group">
-                <label for="name">Full Name</label>
+            <div class="form-grid">
 
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    placeholder="Enter your full name"
-                    required
-                >
+                <!-- Student Name -->
+                <div class="form-group">
+                    <label>
+                        Student Name <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        name="student_name"
+                        placeholder="Enter your full name"
+                        required
+                    >
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label>
+                        Email Address <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        required
+                    >
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label>
+                        Phone Number
+                    </label>
+
+                    <input
+                        type="tel"
+                        name="phone"
+                        placeholder="Enter phone number"
+                        maxlength="20"
+                    >
+                </div>
+
+                <!-- Department -->
+                <div class="form-group">
+                    <label>
+                        Department
+                    </label>
+
+                    <input
+                        type="text"
+                        name="department"
+                        placeholder="Example: Computer Science"
+                    >
+                </div>
+
+                <!-- Course -->
+                <div class="form-group">
+                    <label>
+                        Course
+                    </label>
+
+                    <input
+                        type="text"
+                        name="course"
+                        placeholder="Example: B.Tech Computer Engineering"
+                    >
+                </div>
+
+                <!-- Enrollment Number -->
+                <div class="form-group">
+                    <label>
+                        Enrollment Number
+                    </label>
+
+                    <input
+                        type="text"
+                        name="enrollment_no"
+                        placeholder="Enter enrollment number"
+                    >
+                </div>
+
+                <!-- Admission Year -->
+                <div class="form-group">
+                    <label>
+                        Admission Year
+                    </label>
+
+                    <input
+                        type="number"
+                        name="admission_year"
+                        placeholder="Example: 2024"
+                        min="2000"
+                        max="2100"
+                    >
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label>
+                        Password <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Create a password"
+                        required
+                    >
+                </div>
+
             </div>
 
-            <!-- Email -->
-            <div class="form-group">
-                <label for="email">Email</label>
-
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    required
-                >
+            <div class="button-container">
+                <button type="submit" class="register-btn">
+                    Create Student Account
+                </button>
             </div>
-
-            <!-- Password -->
-            <div class="form-group">
-                <label for="password">Password</label>
-
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Create a password"
-                    required
-                >
-            </div>
-
-            <!-- Role -->
-            <div class="form-group">
-                <label for="role">Register As</label>
-
-                <select id="role" name="role" required>
-
-                    <option value="">
-                        Select Role
-                    </option>
-
-                    <option value="student">
-                        Student
-                    </option>
-
-                    <option value="admin">
-                        Admin / Institution
-                    </option>
-
-                    <option value="verifier">
-                        Verifier
-                    </option>
-
-                </select>
-            </div>
-
-            <!-- Register Button -->
-            <button type="submit" class="register-btn">
-                Create Account
-            </button>
 
         </form>
 
-        <!-- Login Link -->
         <div class="login-link">
             Already have an account?
-
             <a href="{{ url_for('student_login') }}">
-                Login
+                Student Login
             </a>
         </div>
 
     </div>
 
-</body>
+</div>
 
+</body>
 </html>
